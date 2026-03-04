@@ -183,7 +183,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         noValidate
       >
       {/* ── Row 1: Loco 1 + Loco 2 ─────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="loco1" className={labelCls}>
             Loco 1 <span className="text-black">*</span>
@@ -218,7 +218,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
       </div>
 
       {/* ── Row 2: Train No + Station ───────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="train_no" className={labelCls}>
             Train No <span className="text-black">*</span>

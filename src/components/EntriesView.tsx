@@ -144,14 +144,8 @@ export function EntriesView({
       if (prev.find((e) => e.id === entry.id)) return prev;
       return [entry, ...prev];
     });
-    // Close the form panel on mobile after a successful save
-    if (formOpen) {
-      const next = new URLSearchParams(searchParams.toString());
-      next.delete("form");
-      router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formOpen, pathname, router, searchParams]);
+  }, []);
 
   // ── existing loco1s for duplicate check ────────────────────────────────────
   const existingLoco1s = useMemo(() => entries.map((e) => e.loco1), [entries]);
@@ -561,18 +555,41 @@ export function EntriesView({
         )}
       </div>
 
-      {/* ── Right / top: Entry form ─────────────────────────────────────────
-           Desktop: always visible sidebar.
-           Mobile: hidden by default; shown when ?form=1 (+ button in tab bar). */}
-      <aside className={cn("w-full xl:w-80 shrink-0 order-first xl:order-last", !formOpen && "hidden xl:block")}>
-        <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400 font-medium mb-2">
-          New Entry
-        </p>
-        <EntryForm
-          sessionId={sessionId}
-          existingLoco1s={existingLoco1s}
-          onEntrySaved={handleEntrySaved}
-        />
+      {/* ── Right: Entry form ──────────────────────────────────────────────
+           Desktop (xl+): always-visible sidebar.
+           Mobile: fixed full-screen overlay when ?form=1. */}
+      <aside className={cn(
+        "xl:w-80 xl:shrink-0 xl:order-last xl:block",
+        formOpen
+          ? "fixed inset-0 z-50 bg-white overflow-y-auto xl:relative xl:inset-auto xl:z-auto"
+          : "hidden xl:block"
+      )}>
+        {/* Mobile-only close header */}
+        <div className="xl:hidden flex items-center justify-between px-4 h-12 border-b border-neutral-200 sticky top-0 bg-white z-10">
+          <span className="text-[11px] font-mono uppercase tracking-[0.15em] text-neutral-500">New Entry</span>
+          <button
+            onClick={() => {
+              const next = new URLSearchParams(searchParams.toString());
+              next.delete("form");
+              router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+            }}
+            className="h-8 w-8 flex items-center justify-center border border-neutral-300
+                       text-neutral-500 hover:border-black hover:text-black transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="p-4 xl:p-0">
+          <p className="hidden xl:block text-[10px] uppercase tracking-[0.15em] text-neutral-400 font-medium mb-2">
+            New Entry
+          </p>
+          <EntryForm
+            sessionId={sessionId}
+            existingLoco1s={existingLoco1s}
+            onEntrySaved={handleEntrySaved}
+          />
+        </div>
       </aside>
     </div>
   );
