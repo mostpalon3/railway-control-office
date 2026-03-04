@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X, Plus } from "lucide-react";
 
@@ -19,18 +20,39 @@ export function TabNav({ sessionId }: TabNavProps) {
   const pathname    = usePathname();
   const params      = useSearchParams();
   const router      = useRouter();
-  const q           = params.get("q") ?? "";
   const formOpen    = params.get("form") === "1";
+
+  // Local input state — decoupled from URL so every keystroke doesn't re-render
+  const urlQ = params.get("q") ?? "";
+  const [inputValue, setInputValue] = useState(urlQ);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep local state in sync when URL changes externally (tab switch, back/forward)
+  useEffect(() => {
+    setInputValue(params.get("q") ?? "");
+  }, [params]);
+
+  function pushSearch(value: string) {
+    const next = new URLSearchParams(params.toString());
+    if (value) next.set("q", value); else next.delete("q");
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }
+
+  function handleSearchChange(value: string) {
+    setInputValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => pushSearch(value), 300);
+  }
+
+  function clearSearch() {
+    setInputValue("");
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    pushSearch("");
+  }
 
   function toggleForm() {
     const next = new URLSearchParams(params.toString());
     if (formOpen) next.delete("form"); else next.set("form", "1");
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-  }
-
-  function handleSearch(value: string) {
-    const next = new URLSearchParams(params.toString());
-    if (value) next.set("q", value); else next.delete("q");
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
@@ -41,7 +63,7 @@ export function TabNav({ sessionId }: TabNavProps) {
         {TABS.map(({ label, href }) => {
           const base   = href(sessionId);
           const tabParams = new URLSearchParams();
-          if (q) tabParams.set("q", q);
+          if (urlQ) tabParams.set("q", urlQ);
           if (formOpen) tabParams.set("form", "1");
           const paramStr = tabParams.toString();
           const to     = paramStr ? `${base}?${paramStr}` : base;
@@ -87,16 +109,16 @@ export function TabNav({ sessionId }: TabNavProps) {
           />
           <input
             type="text"
-            value={q}
-            onChange={(e) => handleSearch(e.target.value)}
+            value={inputValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search LOCO, train no, station, chart, S.No, date…"
             className="w-full border border-neutral-300 bg-white pl-8 pr-8 py-2 text-xs
                        font-mono text-black placeholder:text-neutral-300 focus:outline-none
                        focus:border-black transition-colors rounded-none"
           />
-          {q && (
+          {inputValue && (
             <button
-              onClick={() => handleSearch("")}
+              onClick={clearSearch}
               aria-label="Clear search"
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400
                          hover:text-black transition-colors"
