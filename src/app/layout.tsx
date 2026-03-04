@@ -18,6 +18,21 @@ const dmMono = DM_Mono({
 export const metadata: Metadata = {
   title: "Railway Control Office",
   description: "Railway Control Office – session and train management system",
+  manifest: "/assets/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/assets/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/assets/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/assets/favicon.ico" },
+    ],
+    apple: { url: "/assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+  },
+  // iOS "Add to Home Screen" support
+  appleWebApp: {
+    capable: true,
+    title: "RCO",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -25,6 +40,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
