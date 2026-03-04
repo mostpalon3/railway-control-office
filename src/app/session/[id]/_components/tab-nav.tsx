@@ -75,7 +75,7 @@ export function TabNav({ sessionId }: TabNavProps) {
               className={cn(
                 "px-3 sm:px-5 py-3 text-[11px] uppercase tracking-[0.15em] font-medium transition-colors border-b-2",
                 active
-                  ? "border-black text-black"
+                  ? "border-emerald-500 text-emerald-600"
                   : "border-transparent text-neutral-400 hover:text-black hover:border-neutral-300"
               )}
             >
@@ -93,7 +93,7 @@ export function TabNav({ sessionId }: TabNavProps) {
             "ml-auto self-center xl:hidden h-8 w-8 flex items-center justify-center border transition-colors",
             formOpen
               ? "border-black bg-black text-white"
-              : "border-neutral-300 text-neutral-600 hover:border-black hover:text-black"
+              : "border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600"
           )}
         >
           {formOpen ? <X size={14} /> : <Plus size={14} />}
