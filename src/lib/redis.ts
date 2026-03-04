@@ -29,6 +29,8 @@ export function getRedis(): Redis | null {
 export const KEYS = {
   /** Cached Firebase auth uid keyed by SHA-256 of the session cookie */
   auth:    (cookieHash: string) => `rco:auth:${cookieHash}`,
+  /** Cached { uid, email } keyed by SHA-256 of the session cookie */
+  authUser:(cookieHash: string) => `rco:authuser:${cookieHash}`,
   /** Cached entries array keyed by MongoDB session id */
   entries: (sessionId:  string) => `rco:entries:${sessionId}`,
 };

@@ -24,10 +24,41 @@ export async function getServerUser() {
 }
 
 /**
- * Redis-cached uid lookup for API route handlers.
- * First call verifies with Firebase Admin (~200 ms); subsequent calls within
- * AUTH_TTL are served from Redis (<5 ms).
+ * Returns { uid, email } for the logged-in user, cached in memory + Redis.
+ * Use this when you need the email (e.g. storing created_by).
  */
+export async function getCachedUser(): Promise<{ uid: string; email: string } | null> {
+  try {
+    const jar     = await cookies();
+    const session = jar.get("__session")?.value;
+    if (!session) return null;
+
+    const hash     = createHash("sha256").update(session).digest("hex");
+    const cacheKey = KEYS.authUser(hash);
+
+    const mem = memGet<{ uid: string; email: string }>(cacheKey);
+    if (mem) return mem;
+
+    const redis = getRedis();
+    if (redis) {
+      const cached = await redis.get<{ uid: string; email: string }>(cacheKey).catch(() => null);
+      if (cached) {
+        memSet(cacheKey, cached, AUTH_TTL * 1000);
+        return cached;
+      }
+    }
+
+    const decoded = await adminAuth.verifySessionCookie(session, false);
+    const user = { uid: decoded.uid, email: decoded.email ?? decoded.uid };
+    memSet(cacheKey, user, AUTH_TTL * 1000);
+    redis?.set(cacheKey, user, { ex: AUTH_TTL }).catch(() => {});
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+/** Cached uid lookup — used by all API routes for auth checks. */
 export async function getCachedUid(): Promise<string | null> {
   try {
     const jar     = await cookies();

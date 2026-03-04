@@ -34,7 +34,9 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const isOwner = session.created_by === currentUserId;
+  // isOwner: email match (new records) OR no '@' = old uid format (single-user app, must be you)
+  const isOwner = session.created_by === currentUserId
+    || (!!session.created_by && !session.created_by.includes("@"));
   const isActive = session.ended_at === null;
 
   async function handleDelete() {
@@ -87,9 +89,7 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
             <dd className="font-mono text-[11px] text-neutral-700">
               {isOwner
                 ? "You"
-                : session.created_by
-                  ? `${session.created_by.slice(0, 8)}…`
-                  : "—"}
+                : session.created_by ?? "—"}
             </dd>
           </div>
         </dl>

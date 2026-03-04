@@ -77,7 +77,7 @@ export default async function DashboardPage() {
                 key={s.id}
                 session={s}
                 entryCount={countMap[s.id] ?? 0}
-                currentUserId={user.uid}
+                currentUserId={user.email ?? user.uid}
               />
             ))}
           </div>

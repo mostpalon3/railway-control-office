@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
-import { getCachedUid } from "@/lib/firebase/server";
+import { getCachedUid, getCachedUser } from "@/lib/firebase/server";
 import { getRedis, KEYS } from "@/lib/redis";
 import { memGet, memSet, memDel } from "@/lib/mem-cache";
 
@@ -49,8 +49,8 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/entries  — create a new entry */
 export async function POST(req: NextRequest) {
-  const uid = await getCachedUid();
-  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCachedUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const { session_id, loco1, loco2, train_no, station, chart_no, sno, date } = body;
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     chart_no,
     sno:        Number(sno),
     date,
-    created_by: uid,
+    created_by: user.email,
     created_at: now,
   });
 
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       chart_no,
       sno:        Number(sno),
       date,
-      created_by: uid,
+      created_by: user.email,
       created_at: now.toISOString(),
     },
     { status: 201 }
