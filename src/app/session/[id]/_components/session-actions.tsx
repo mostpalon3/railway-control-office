@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X } from "lucide-react";
+import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X, RefreshCw } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { Entry } from "@/lib/supabase/types";
 
@@ -87,8 +87,19 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
   const [saving,        setSaving]       = useState(false);
   const [exporting,     setExporting]    = useState(false);
   const [printing,      setPrinting]     = useState(false);
+  const [refreshing,    setRefreshing]   = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting,      setDeleting]     = useState(false);
+
+  // ── Refresh ───────────────────────────────────────────────────────────
+  async function handleRefresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    router.refresh();
+    await new Promise((r) => setTimeout(r, 800));
+    setRefreshing(false);
+    toast.success("Page refreshed");
+  }
 
   // ── Save Session ────────────────────────────────────────────────────────────
   async function handleSave() {
@@ -209,6 +220,17 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
       >
         <ArrowLeft size={13} />
         <span className="hidden sm:inline">Dashboard</span>
+      </button>
+
+      {/* Refresh */}
+      <button
+        onClick={handleRefresh}
+        disabled={refreshing}
+        className={`${btnBase} border-neutral-300 text-neutral-600 hover:border-black hover:text-black`}
+        title="Refresh"
+      >
+        <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+        <span className="hidden sm:inline">{refreshing ? "Refreshing…" : "Refresh"}</span>
       </button>
 
       {/* Print */}
