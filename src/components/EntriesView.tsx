@@ -130,10 +130,16 @@ export function EntriesView({
     }
 
     poll();
-    const interval = setInterval(poll, 4000);
+    const interval = setInterval(poll, 8000);
+
+    // Skip polls while the tab is backgrounded; catch up immediately on return
+    const onVisible = () => { if (!document.hidden) poll(); };
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       cancelled = true;
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);

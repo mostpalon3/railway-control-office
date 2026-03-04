@@ -37,15 +37,16 @@ export function SessionStatus({ sessionId }: SessionStatusProps) {
       }
     }
 
+    // Single-user app — no need to poll a presence count.
+    // Just do one initial heartbeat to confirm connectivity, then
+    // keep a slow heartbeat every 60 s so the server knows we're here.
     heartbeat();
     poll();
-    const beatInterval = setInterval(heartbeat, 20_000);
-    const pollInterval = setInterval(poll, 15_000);
+    const beatInterval = setInterval(heartbeat, 60_000);
 
     return () => {
       cancelled = true;
       clearInterval(beatInterval);
-      clearInterval(pollInterval);
     };
   }, [sessionId]);
 

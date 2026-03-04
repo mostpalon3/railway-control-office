@@ -9,7 +9,7 @@ async function getUid(): Promise<string | null> {
     const jar = await cookies();
     const session = jar.get("__session")?.value;
     if (!session) return null;
-    const decoded = await adminAuth.verifySessionCookie(session, true);
+    const decoded = await adminAuth.verifySessionCookie(session, false);
     return decoded.uid;
   } catch {
     return null;
