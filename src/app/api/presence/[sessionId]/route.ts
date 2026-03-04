@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
-import { adminAuth } from "@/lib/firebase/admin";
-import { cookies } from "next/headers";
+import { getCachedUid } from "@/lib/firebase/server";
 
 const STALE_MS = 35_000; // 35 s — prune entries older than this
 
-async function getUid(): Promise<string | null> {
-  try {
-    const jar = await cookies();
-    const session = jar.get("__session")?.value;
-    if (!session) return null;
-    const decoded = await adminAuth.verifySessionCookie(session, false);
-    return decoded.uid;
-  } catch {
-    return null;
-  }
-}
 
 /** GET /api/presence/[sessionId]  — return count of active users */
 export async function GET(
@@ -38,7 +26,7 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
-  const uid = await getUid();
+  const uid = await getCachedUid();
   if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { sessionId } = await params;

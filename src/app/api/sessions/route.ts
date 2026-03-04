@@ -1,24 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
-import { adminAuth } from "@/lib/firebase/admin";
-import { cookies } from "next/headers";
-
-async function getUid(): Promise<string | null> {
-  try {
-    const jar = await cookies();
-    const session = jar.get("__session")?.value;
-    if (!session) return null;
-    const decoded = await adminAuth.verifySessionCookie(session, false);
-    return decoded.uid;
-  } catch {
-    return null;
-  }
-}
+import { getCachedUid } from "@/lib/firebase/server";
 
 /** POST /api/sessions  — create a new session */
 export async function POST(req: NextRequest) {
-  const uid = await getUid();
+  const uid = await getCachedUid();
   if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { name } = await req.json();

@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
-import { adminAuth } from "@/lib/firebase/admin";
-import { cookies } from "next/headers";
-
-async function getUid(): Promise<string | null> {
-  try {
-    const jar = await cookies();
-    const session = jar.get("__session")?.value;
-    if (!session) return null;
-    const decoded = await adminAuth.verifySessionCookie(session, false);
-    return decoded.uid;
-  } catch {
-    return null;
-  }
-}
+import { getCachedUid } from "@/lib/firebase/server";
+import { getRedis, KEYS } from "@/lib/redis";
+import { memDel } from "@/lib/mem-cache";
 
 /** PATCH /api/sessions/[id]  — update ended_at (open/close) */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const uid = await getUid();
+  const uid = await getCachedUid();
   if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
@@ -41,7 +30,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const uid = await getUid();
+  const uid = await getCachedUid();
   if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
@@ -49,6 +38,9 @@ export async function DELETE(
 
   await db.collection("entries").deleteMany({ session_id: id });
   await db.collection("sessions").deleteOne({ _id: new ObjectId(id) });
+  // Bust L1 + L2 cache for the deleted session
+  memDel(KEYS.entries(id));
+  getRedis()?.del(KEYS.entries(id)).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }
