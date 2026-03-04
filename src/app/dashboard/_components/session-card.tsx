@@ -103,15 +103,13 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
           >
             Open
           </a>
-          {isOwner && (
-            <button
+          <button
               onClick={() => setDeleteOpen(true)}
               className="flex-1 text-xs border border-neutral-300 text-neutral-500
                          py-2 hover:border-red-400 hover:text-red-600 transition-colors rounded-none"
             >
               Delete
             </button>
-          )}
         </div>
       </article>
 

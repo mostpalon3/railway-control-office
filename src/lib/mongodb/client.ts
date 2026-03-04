@@ -16,6 +16,7 @@ async function ensureIndexes(db: Db) {
     await db.collection("entries").createIndex({ session_id: 1 });
     await db.collection("entries").createIndex({ session_id: 1, loco1: 1 });
     await db.collection("sessions").createIndex({ created_by: 1 });
+    await db.collection("sessions").createIndex({ name: 1 }, { unique: true });
   } catch {
     // Indexes already exist — safe to ignore
   }
