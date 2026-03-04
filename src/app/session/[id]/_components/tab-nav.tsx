@@ -11,10 +11,10 @@ interface TabNavProps {
 }
 
 const TABS = [
-  { label: "By Train Name", href: (id: string) => `/session/${id}/train` },
-  { label: "By Station",   href: (id: string) => `/session/${id}/station` },
-  { label: "By Chart",     href: (id: string) => `/session/${id}/chart` },
-  { label: "Shutdown",     href: (id: string) => `/session/${id}/shutdown` },
+  { label: "By Train Name", short: "Train",    href: (id: string) => `/session/${id}/train` },
+  { label: "By Station",    short: "Station",  href: (id: string) => `/session/${id}/station` },
+  { label: "By Chart",      short: "Chart",    href: (id: string) => `/session/${id}/chart` },
+  { label: "Shutdown",      short: "SD", href: (id: string) => `/session/${id}/shutdown` },
 ] as const;
 
 export function TabNav({ sessionId }: TabNavProps) {
@@ -61,7 +61,7 @@ export function TabNav({ sessionId }: TabNavProps) {
     <div className="border-b border-neutral-200 bg-white">
       {/* ── Tab row ── */}
       <div className="px-6 flex items-end gap-0">
-        {TABS.map(({ label, href }) => {
+        {TABS.map(({ label, short, href }) => {
           const base   = href(sessionId);
           const tabParams = new URLSearchParams();
           if (urlQ) tabParams.set("q", urlQ);
@@ -80,7 +80,8 @@ export function TabNav({ sessionId }: TabNavProps) {
                   : "border-transparent text-neutral-400 hover:text-black hover:border-neutral-300"
               )}
             >
-              {label}
+              <span className="sm:hidden">{short}</span>
+              <span className="hidden sm:inline">{label}</span>
             </Link>
           );
         })}

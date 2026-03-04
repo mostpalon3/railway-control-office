@@ -338,7 +338,7 @@ export function EntriesView({
           </div>
         ) : (
           <div className="overflow-x-auto -mx-6 sm:mx-0">
-            <div className="space-y-6 min-w-[640px] px-6 sm:px-0">
+            <div className="space-y-6 min-w-[820px] px-6 sm:px-0">
             {sortedKeys.map((key) => {
               const rows = grouped.get(key) ?? [];
               return (
