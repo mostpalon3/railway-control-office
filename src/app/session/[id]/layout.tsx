@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/mongodb/client";
 import { ObjectId } from "mongodb";
+import { notFound } from "next/navigation";
 import { TabNav } from "./_components/tab-nav";
 import { SessionActions } from "./_components/session-actions";
 import { SessionStatus } from "./_components/session-status";
@@ -16,16 +17,23 @@ export default async function SessionLayout({
 }: SessionLayoutProps) {
   const { id } = await params;
 
-  // Fetch session from MongoDB
-  const db = await getDb();
-  const docSnap = await db.collection("sessions").findOne({ _id: new ObjectId(id) });
+  // Validate ObjectId format before hitting DB — prevents a 500 on garbage URLs
+  if (!ObjectId.isValid(id)) notFound();
+
   let session: Pick<Session, "id" | "name" | "ended_at"> | null = null;
-  if (docSnap) {
+  try {
+    const db = await getDb();
+    const docSnap = await db.collection("sessions").findOne({ _id: new ObjectId(id) });
+    if (!docSnap) notFound();
     session = {
       id,
       name:     docSnap.name as string,
       ended_at: docSnap.ended_at ? (docSnap.ended_at as Date).toISOString() : null,
     };
+  } catch (err) {
+    // Re-throw so the nearest error.tsx catches it (notFound errors propagate separately)
+    if ((err as { digest?: string })?.digest?.startsWith("NEXT_NOT_FOUND")) throw err;
+    throw new Error("Database unavailable — could not load session");
   }
 
   return (

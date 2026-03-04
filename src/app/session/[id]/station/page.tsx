@@ -14,26 +14,31 @@ export default async function StationPage({ params }: StationPageProps) {
   const user = await getServerUser();
   if (!user) redirect("/auth/login");
 
-  const db = await getDb();
-  const docs = await db
-    .collection("entries")
-    .find({ session_id: id })
-    .sort({ created_at: -1 })
-    .toArray();
+  let entries: Entry[] = [];
+  try {
+    const db = await getDb();
+    const docs = await db
+      .collection("entries")
+      .find({ session_id: id })
+      .sort({ created_at: -1 })
+      .toArray();
 
-  const entries: Entry[] = docs.map((d) => ({
-    id:         (d._id as ObjectId).toHexString(),
-    session_id: d.session_id as string,
-    loco1:      d.loco1 as string,
-    loco2:      (d.loco2 as string | null) ?? null,
-    train_no:   d.train_no as string,
-    station:    d.station as string,
-    chart_no:   d.chart_no,
-    sno:        d.sno,
-    date:       d.date as string,
-    created_by: (d.created_by as string | null) ?? null,
-    created_at: (d.created_at as Date).toISOString(),
-  }));
+    entries = docs.map((d) => ({
+      id:         (d._id as ObjectId).toHexString(),
+      session_id: d.session_id as string,
+      loco1:      d.loco1 as string,
+      loco2:      (d.loco2 as string | null) ?? null,
+      train_no:   d.train_no as string,
+      station:    d.station as string,
+      chart_no:   d.chart_no,
+      sno:        d.sno,
+      date:       d.date as string,
+      created_by: (d.created_by as string | null) ?? null,
+      created_at: (d.created_at as Date).toISOString(),
+    }));
+  } catch {
+    throw new Error("Database unavailable — could not load entries");
+  }
 
   return (
     <EntriesView

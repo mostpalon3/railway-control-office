@@ -11,33 +11,40 @@ export default async function DashboardPage() {
   const user = await getServerUser();
   if (!user) redirect("/auth/login");
 
-  const db = await getDb();
+  let sessions: Session[] = [];
+  let countMap: Record<string, number> = {};
 
-  // Fetch all sessions ordered by started_at desc
-  const docs = await db
-    .collection("sessions")
-    .find({})
-    .sort({ started_at: -1 })
-    .toArray();
+  try {
+    const db = await getDb();
 
-  const sessions: Session[] = docs.map((d) => ({
-    id:         (d._id as ObjectId).toHexString(),
-    name:       d.name as string,
-    started_at: (d.started_at as Date).toISOString(),
-    ended_at:   d.ended_at ? (d.ended_at as Date).toISOString() : null,
-    created_by: (d.created_by as string | null) ?? null,
-  }));
+    // Fetch all sessions ordered by started_at desc
+    const docs = await db
+      .collection("sessions")
+      .find({})
+      .sort({ started_at: -1 })
+      .toArray();
 
-  // Fetch entry counts per session (parallel)
-  const countResults = await Promise.all(
-    sessions.map((s) =>
-      db
-        .collection("entries")
-        .countDocuments({ session_id: s.id })
-        .then((count) => ({ id: s.id, count }))
-    )
-  );
-  const countMap = Object.fromEntries(countResults.map((r) => [r.id, r.count]));
+    sessions = docs.map((d) => ({
+      id:         (d._id as ObjectId).toHexString(),
+      name:       d.name as string,
+      started_at: (d.started_at as Date).toISOString(),
+      ended_at:   d.ended_at ? (d.ended_at as Date).toISOString() : null,
+      created_by: (d.created_by as string | null) ?? null,
+    }));
+
+    // Fetch entry counts per session (parallel)
+    const countResults = await Promise.all(
+      sessions.map((s) =>
+        db
+          .collection("entries")
+          .countDocuments({ session_id: s.id })
+          .then((count) => ({ id: s.id, count }))
+      )
+    );
+    countMap = Object.fromEntries(countResults.map((r) => [r.id, r.count]));
+  } catch {
+    throw new Error("Database unavailable — could not load sessions");
+  }
 
   return (
     <div className="min-h-screen bg-white">
