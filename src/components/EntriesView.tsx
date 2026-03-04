@@ -514,7 +514,7 @@ export function EntriesView({
                                   </td>
                                   {/* Edit / Delete */}
                                   <td className="px-2 py-1.5">
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                       <button
                                         onClick={() => startEdit(entry)}
                                         className="p-1.5 border border-neutral-300 text-neutral-500
