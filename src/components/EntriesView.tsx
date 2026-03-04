@@ -271,7 +271,7 @@ export function EntriesView({
     "text-black focus:outline-none focus:border-black rounded-none min-w-0";
 
   const groupLabel: Record<GroupBy, string> = {
-    train_no: "Train No.",
+    train_no: "Train Name",
     station: "Station",
     chart_no: "Chart No.",
   };
@@ -331,7 +331,7 @@ export function EntriesView({
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b border-neutral-100">
-                          {["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train No", "Station", "Date", ""].map(
+                          {["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", ""].map(
                             (h, i) => (
                               <th
                                 key={i}

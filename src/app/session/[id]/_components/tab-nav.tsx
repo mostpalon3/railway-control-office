@@ -11,7 +11,7 @@ interface TabNavProps {
 }
 
 const TABS = [
-  { label: "By Train No.", href: (id: string) => `/session/${id}/train` },
+  { label: "By Train Name", href: (id: string) => `/session/${id}/train` },
   { label: "By Station",   href: (id: string) => `/session/${id}/station` },
   { label: "By Chart",     href: (id: string) => `/session/${id}/chart` },
 ] as const;

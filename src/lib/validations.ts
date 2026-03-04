@@ -48,7 +48,7 @@ export const entrySchema = z.object({
   session_id: z.string().min(1, "Invalid session"),
   loco1: z.string().min(1, "Loco 1 is required"),
   loco2: z.string().optional(),
-  train_no: z.string().min(1, "Train number is required"),
+  train_no: z.string().min(1, "Train name is required"),
   station: z.string().min(1, "Station is required"),
   chart_no: z.enum(CHART_NO_VALUES, {
     error: () => "Chart no. must be 1–12 or 3A",

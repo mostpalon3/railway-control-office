@@ -465,10 +465,10 @@ export function ScanModal({ onClose, onApply }: ScanModalProps) {
                     />
                   </div>
 
-                  {/* Train No */}
+                  {/* Train Name */}
                   <div>
                     <label className={labelCls}>
-                      Train No<ConfBadge detected={!!result.train_no} />
+                      Train Name<ConfBadge detected={!!result.train_no} />
                     </label>
                     <input
                       className={fieldCls}

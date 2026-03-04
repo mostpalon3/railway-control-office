@@ -20,7 +20,7 @@ function escapeCsv(val: string): string {
 }
 
 function entriesToCsv(entries: Entry[]): string {
-  const headers = ["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train No", "Station", "Date"];
+  const headers = ["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date"];
   const rows = entries.map((e) => [
     e.loco1,
     e.chart_no,

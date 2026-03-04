@@ -217,18 +217,18 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         </div>
       </div>
 
-      {/* ── Row 2: Train No + Station ───────────────────────────────────── */}
+      {/* ── Row 2: Train Name + Station ──────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="train_no" className={labelCls}>
-            Train No <span className="text-black">*</span>
+            Train Name <span className="text-black">*</span>
           </label>
           <input
             id="train_no"
-            inputMode="numeric"
+            type="text"
             {...register("train_no")}
             className={inputCls}
-            placeholder="e.g. 12301"
+            placeholder="e.g. Rajdhani Express"
           />
           {errors.train_no && (
             <p className="mt-1 text-[11px] text-red-600">{errors.train_no.message}</p>
