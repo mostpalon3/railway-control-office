@@ -26,6 +26,7 @@ export async function PATCH(
         ...(body.chart_no !== undefined && { chart_no: body.chart_no        }),
         ...(body.sno      !== undefined && { sno:      Number(body.sno)     }),
         ...(body.date     !== undefined && { date:     body.date            }),
+        ...(body.shutdown !== undefined && { shutdown: body.shutdown === true }),
       },
     }
   );

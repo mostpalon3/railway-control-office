@@ -141,3 +141,40 @@
     outline: none;
   }
 }
+
+/* ── Print styles ─────────────────────────────────────────────────────────── */
+@media print {
+  /* Hide chrome — header, tab nav, search bar, entry form, action buttons */
+  header,
+  nav,
+  [data-print-hide],
+  aside {
+    display: none !important;
+  }
+
+  /* Remove padding from main to fill the page */
+  main {
+    padding: 0 !important;
+  }
+
+  /* Show all table rows — remove overflow clipping */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  /* Strip interactive opacity from edit/delete buttons */
+  .group-hover\:opacity-100 {
+    opacity: 0 !important;
+  }
+
+  /* Ensure text is black on white */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Page break between groups */
+  .space-y-6 > div {
+    break-inside: avoid;
+  }
+}

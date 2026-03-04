@@ -58,5 +58,6 @@ export const entrySchema = z.object({
     .int("Must be a whole number")
     .min(1, "S. No is required"),
   date: z.string().min(1, "Date is required"),
+  shutdown: z.boolean(),
 });
 export type EntryFormValues = z.infer<typeof entrySchema>;

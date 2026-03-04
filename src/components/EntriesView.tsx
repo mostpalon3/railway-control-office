@@ -32,12 +32,23 @@ function Highlight({ text, query }: { text: string; query: string }) {
 }
 
 // ─── types ────────────────────────────────────────────────────────────────────
-type GroupBy = "train_no" | "station" | "chart_no";
+type GroupBy = "train_no" | "station" | "chart_no" | "shutdown";
 
 interface EntriesViewProps {
   sessionId: string;
   initialEntries: Entry[];
   groupBy: GroupBy;
+  filterShutdown?: boolean;  // if true, show only shutdown entries
+}
+
+// ─── date/time display helper ─────────────────────────────────────────────────
+function formatDateTime(value: string): { date: string; time: string | null } {
+  if (!value) return { date: "—", time: null };
+  if (value.includes("T")) {
+    const [datePart, timePart] = value.split("T");
+    return { date: datePart, time: timePart.slice(0, 5) };
+  }
+  return { date: value, time: null };
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -51,7 +62,16 @@ function sortGroupKeys(keys: string[], groupBy: GroupBy): string[] {
   if (groupBy === "train_no") {
     return [...keys].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
   }
+  if (groupBy === "shutdown") {
+    // "true" (Shutdown) first, then "false" (Active)
+    return [...keys].sort((a, b) => (a === "true" ? -1 : 1) - (b === "true" ? -1 : 1));
+  }
   return [...keys].sort((a, b) => a.localeCompare(b));
+}
+
+function formatGroupKey(key: string, groupBy: GroupBy): string {
+  if (groupBy === "shutdown") return key === "true" ? "Shutdown" : "Active";
+  return key;
 }
 
 function matchesSearch(entry: Entry, q: string): boolean {
@@ -78,13 +98,14 @@ type EditState = Omit<Entry, "id" | "session_id" | "created_by" | "created_at">;
 
 function blankEdit(entry: Entry): EditState {
   return {
-    loco1: entry.loco1,
-    loco2: entry.loco2,
+    loco1:    entry.loco1,
+    loco2:    entry.loco2,
     train_no: entry.train_no,
-    station: entry.station,
+    station:  entry.station,
     chart_no: entry.chart_no,
-    sno: entry.sno,
-    date: entry.date,
+    sno:      entry.sno,
+    date:     entry.date,
+    shutdown: entry.shutdown ?? false,
   };
 }
 
@@ -93,6 +114,7 @@ export function EntriesView({
   sessionId,
   initialEntries,
   groupBy,
+  filterShutdown = false,
 }: EntriesViewProps) {
   // ── URL params ────────────────────────────────────────────────────────────
   const searchParams = useSearchParams();
@@ -158,14 +180,18 @@ export function EntriesView({
 
   // ── filtered + grouped entries ─────────────────────────────────────────────
   const filtered = useMemo(
-    () => entries.filter((e) => matchesSearch(e, search)),
-    [entries, search]
+    () => entries.filter((e) => {
+      if (filterShutdown && !e.shutdown) return false;
+      return matchesSearch(e, search);
+    }),
+    [entries, search, filterShutdown]
   );
 
   const grouped = useMemo(() => {
     const map = new Map<string, Entry[]>();
     for (const e of filtered) {
-      const key = e[groupBy] ?? "—";
+      const raw = groupBy === "shutdown" ? String(e.shutdown) : (e[groupBy as Exclude<GroupBy, "shutdown">] ?? "—");
+      const key = String(raw);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(e);
     }
@@ -246,6 +272,7 @@ export function EntriesView({
           chart_no: editValues.chart_no,
           sno:      editValues.sno,
           date:     editValues.date,
+          shutdown: editValues.shutdown,
         }),
       });
       if (!res.ok) throw new Error("Update failed");
@@ -260,7 +287,7 @@ export function EntriesView({
     setSaving(false);
   }
 
-  function editField(field: keyof EditState, value: string | number | null) {
+  function editField(field: keyof EditState, value: string | number | boolean | null) {
     setEditValues((prev) => (prev ? { ...prev, [field]: value } : prev));
   }
 
@@ -274,6 +301,7 @@ export function EntriesView({
     train_no: "Train Name",
     station: "Station",
     chart_no: "Chart No.",
+    shutdown: "Status",
   };
 
   // ─── render ────────────────────────────────────────────────────────────────
@@ -316,11 +344,23 @@ export function EntriesView({
               return (
                 <div key={key} className="border border-neutral-200">
                   {/* Group header */}
-                  <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-200 flex items-center gap-2">
+                  <div className={cn(
+                    "px-4 py-2 border-b border-neutral-200 flex items-center gap-2",
+                    groupBy === "shutdown" && key === "true"
+                      ? "bg-red-50"
+                      : groupBy === "shutdown" && key === "false"
+                      ? "bg-green-50"
+                      : "bg-neutral-50"
+                  )}>
                     <span className="text-[9px] uppercase tracking-[0.15em] text-neutral-400 font-medium">
                       {groupLabel[groupBy]}
                     </span>
-                    <span className="font-mono text-sm font-semibold text-black">{key}</span>
+                    <span className={cn(
+                      "font-mono text-sm font-semibold",
+                      groupBy === "shutdown" && key === "true" ? "text-red-700" :
+                      groupBy === "shutdown" && key === "false" ? "text-green-700" :
+                      "text-black"
+                    )}>{formatGroupKey(key, groupBy)}</span>
                     <span className="ml-auto font-mono text-[10px] text-neutral-400">
                       {rows.length} entr{rows.length !== 1 ? "ies" : "y"}
                     </span>
@@ -331,7 +371,7 @@ export function EntriesView({
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b border-neutral-100">
-                          {["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", ""].map(
+                          {["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", "SD", ""].map(
                             (h, i) => (
                               <th
                                 key={i}
@@ -423,12 +463,26 @@ export function EntriesView({
                                   </td>
                                   <td className="px-2 py-1.5">
                                     <input
-                                      type="date"
+                                      type="datetime-local"
                                       className={editInputCls}
                                       value={editValues.date}
                                       onChange={(e) => editField("date", e.target.value)}
-                                      style={{ width: "8rem" }}
+                                      style={{ width: "11rem" }}
                                     />
+                                  </td>
+                                  <td className="px-2 py-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => editField("shutdown", !editValues.shutdown)}
+                                      className={cn(
+                                        "px-2 py-1 text-[10px] font-mono border transition-colors rounded-none",
+                                        editValues.shutdown
+                                          ? "bg-red-500 border-red-500 text-white"
+                                          : "bg-white border-neutral-300 text-neutral-500 hover:border-black"
+                                      )}
+                                    >
+                                      {editValues.shutdown ? "Yes" : "No"}
+                                    </button>
                                   </td>
                                   {/* Save / Cancel */}
                                   <td className="px-2 py-1.5">
@@ -458,7 +512,7 @@ export function EntriesView({
                               ) : isConfirmingDelete ? (
                                 <>
                                   {/* Delete confirmation — spans full width via colSpan trick */}
-                                  <td colSpan={7} className="px-3 py-2">
+                                  <td colSpan={8} className="px-3 py-2">
                                     <span className="font-mono text-xs text-neutral-600">
                                       Delete entry for loco{" "}
                                       <strong className="text-black">{entry.loco1}</strong>?
@@ -510,7 +564,27 @@ export function EntriesView({
                                     <Highlight text={entry.station} query={search} />
                                   </td>
                                   <td className={cellCls}>
-                                    <Highlight text={entry.date} query={search} />
+                                    {(() => {
+                                      const { date, time } = formatDateTime(entry.date);
+                                      return (
+                                        <span className="flex flex-col leading-tight">
+                                          <Highlight text={date} query={search} />
+                                          {time && (
+                                            <span className="text-[10px] text-neutral-400 font-mono">{time}</span>
+                                          )}
+                                        </span>
+                                      );
+                                    })()}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    {entry.shutdown ? (
+                                      <span className="text-[9px] uppercase tracking-wider font-medium
+                                                       border border-red-300 text-red-600 px-1 py-0.5">
+                                        Yes
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] text-neutral-300 font-mono">—</span>
+                                    )}
                                   </td>
                                   {/* Edit / Delete */}
                                   <td className="px-2 py-1.5">

@@ -5,11 +5,11 @@ import { ObjectId } from "mongodb";
 import { EntriesView } from "@/components/EntriesView";
 import type { Entry } from "@/lib/supabase/types";
 
-interface TrainPageProps {
+interface ShutdownPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function TrainPage({ params }: TrainPageProps) {
+export default async function ShutdownPage({ params }: ShutdownPageProps) {
   const { id } = await params;
   const user = await getCachedUser();
   if (!user) redirect("/auth/login");
@@ -45,7 +45,7 @@ export default async function TrainPage({ params }: TrainPageProps) {
     <EntriesView
       sessionId={id}
       initialEntries={entries}
-      groupBy="train_no"
+      groupBy="shutdown"
     />
   );
 }

@@ -14,9 +14,14 @@ import { ScanText, Loader2 } from "lucide-react";
 const CHART_OPTIONS = [...CHART_NO_VALUES] as ChartNo[];
 const SNO_OPTIONS = Array.from({ length: 21 }, (_, i) => i + 1) as Sno[];
 
-// Today as YYYY-MM-DD
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+// Current date+time as YYYY-MM-DDTHH:MM (datetime-local format)
+function nowISO() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
+    `T${pad(now.getHours())}:${pad(now.getMinutes())}`
+  );
 }
 
 // ─── props ────────────────────────────────────────────────────────────────────
@@ -50,14 +55,14 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
       station: "",
       chart_no: "" as EntryFormValues["chart_no"],
       sno: 0,   // sentinel: 0 fails min(1), acts as "not selected"
-      date: todayISO(),
+      date: nowISO(),
+      shutdown: false,
     },
   });
 
-  // Keep session_id and date in sync
+  // Keep session_id in sync; date is set by the user via datetime-local
   useEffect(() => {
     setValue("session_id", sessionId);
-    setValue("date", todayISO());
   }, [sessionId, setValue]);
 
   const watchedChartNo = watch("chart_no");
@@ -89,6 +94,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
           chart_no:   values.chart_no,
           sno:        values.sno,
           date:       values.date,
+          shutdown:   values.shutdown,
         }),
       });
 
@@ -114,7 +120,8 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         station: "",
         chart_no: "" as EntryFormValues["chart_no"],
         sno: 0,
-        date: todayISO(),
+        date: nowISO(),
+        shutdown: false,
       });
       // Return focus to loco1 so the operator can immediately key in the next entry
       setTimeout(() => (document.getElementById("loco1") as HTMLInputElement | null)?.focus(), 30);
@@ -281,7 +288,43 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
           <p className="mt-1.5 text-[11px] text-red-600">{errors.chart_no.message as string}</p>
         )}
       </div>
-
+      {/* ── Shutdown ──────────────────────────────────────────── */}
+      <div>
+        <Controller
+          control={control}
+          name="shutdown"
+          render={({ field }) => (
+            <label className="flex items-center gap-3 cursor-pointer select-none w-fit">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={field.value}
+                onClick={() => field.onChange(!field.value)}
+                className={cn(
+                  "h-5 w-5 border-2 flex items-center justify-center transition-colors rounded-none flex-shrink-0",
+                  field.value
+                    ? "bg-black border-black"
+                    : "bg-white border-neutral-300 hover:border-black"
+                )}
+              >
+                {field.value && (
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+              <span className="text-xs font-mono text-black">
+                Shutdown
+              </span>
+              {field.value && (
+                <span className="text-[10px] uppercase tracking-wider text-red-600 border border-red-300 px-1.5 py-0.5 font-medium">
+                  YES
+                </span>
+              )}
+            </label>
+          )}
+        />
+      </div>
       {/* ── S.No radio grid — selecting triggers auto-save ─────────────── */}
       <div>
         <div className="flex items-center justify-between mb-1.5">

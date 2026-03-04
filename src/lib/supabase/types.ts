@@ -39,6 +39,7 @@ export interface Entry {
   chart_no: ChartNo;
   sno: Sno;
   date: string;                // date ISO string YYYY-MM-DD
+  shutdown: boolean;           // loco shut down?
   created_by: string | null;   // auth.users.id
   created_at: string;          // timestamptz ISO string
 }
@@ -52,6 +53,7 @@ export type EntryInsert = {
   chart_no: ChartNo;
   sno: Sno;
   date?: string;
+  shutdown?: boolean;
   created_by?: string | null;
   created_at?: string;
 };

@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
     chart_no:   d.chart_no,
     sno:        d.sno,
     date:       d.date,
+    shutdown:   d.shutdown === true,
     created_by: d.created_by ?? null,
     created_at: (d.created_at as Date).toISOString(),
   }));
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { session_id, loco1, loco2, train_no, station, chart_no, sno, date } = body;
+  const { session_id, loco1, loco2, train_no, station, chart_no, sno, date, shutdown } = body;
 
   if (!session_id || !loco1 || !train_no || !station || !chart_no || !sno || !date) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
     chart_no,
     sno:        Number(sno),
     date,
+    shutdown:   shutdown === true,
     created_by: user.email,
     created_at: now,
   });
@@ -100,6 +102,7 @@ export async function POST(req: NextRequest) {
       chart_no,
       sno:        Number(sno),
       date,
+      shutdown:   shutdown === true,
       created_by: user.email,
       created_at: now.toISOString(),
     },

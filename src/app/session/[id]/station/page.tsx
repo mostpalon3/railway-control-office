@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerUser } from "@/lib/firebase/server";
+import { getCachedUser } from "@/lib/firebase/server";
 import { getDb } from "@/lib/mongodb/client";
 import { ObjectId } from "mongodb";
 import { EntriesView } from "@/components/EntriesView";
@@ -11,7 +11,7 @@ interface StationPageProps {
 
 export default async function StationPage({ params }: StationPageProps) {
   const { id } = await params;
-  const user = await getServerUser();
+  const user = await getCachedUser();
   if (!user) redirect("/auth/login");
 
   let entries: Entry[] = [];
@@ -33,6 +33,7 @@ export default async function StationPage({ params }: StationPageProps) {
       chart_no:   d.chart_no,
       sno:        d.sno,
       date:       d.date as string,
+      shutdown:   d.shutdown === true,
       created_by: (d.created_by as string | null) ?? null,
       created_at: (d.created_at as Date).toISOString(),
     }));

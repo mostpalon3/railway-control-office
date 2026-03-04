@@ -14,6 +14,7 @@ const TABS = [
   { label: "By Train Name", href: (id: string) => `/session/${id}/train` },
   { label: "By Station",   href: (id: string) => `/session/${id}/station` },
   { label: "By Chart",     href: (id: string) => `/session/${id}/chart` },
+  { label: "Shutdown",     href: (id: string) => `/session/${id}/shutdown` },
 ] as const;
 
 export function TabNav({ sessionId }: TabNavProps) {

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Trash2, Save, Loader2, Check, X } from "lucide-react";
+import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X } from "lucide-react";
+import * as XLSX from "xlsx";
 import type { Entry } from "@/lib/supabase/types";
 
 interface SessionActionsProps {
@@ -11,38 +12,67 @@ interface SessionActionsProps {
   sessionName: string;
 }
 
-// ─── CSV helpers ──────────────────────────────────────────────────────────────
-function escapeCsv(val: string): string {
-  if (val.includes(",") || val.includes('"') || val.includes("\n")) {
-    return `"${val.replace(/"/g, '""')}"`;
-  }
-  return val;
+// ─── Excel helpers ────────────────────────────────────────────────────────────
+function downloadExcel(entries: Entry[], filename: string) {
+  const rows = entries.map((e) => ({
+    "LOCO 1":     e.loco1,
+    "Chart No":   e.chart_no,
+    "S.No":       e.sno,
+    "LOCO 2":     e.loco2 ?? "",
+    "Train Name": e.train_no,
+    "Station":    e.station,
+    "Date":       e.date,
+    "Shutdown":   e.shutdown ? "Yes" : "No",
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = [
+    { wch: 12 }, { wch: 10 }, { wch: 6 }, { wch: 12 },
+    { wch: 14 }, { wch: 16 }, { wch: 20 }, { wch: 10 },
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Entries");
+  XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
-function entriesToCsv(entries: Entry[]): string {
-  const headers = ["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date"];
-  const rows = entries.map((e) => [
-    e.loco1,
-    e.chart_no,
-    String(e.sno),
-    e.loco2 ?? "",
-    e.train_no,
-    e.station,
-    e.date,
-  ]);
-  return [headers, ...rows]
-    .map((row) => row.map(escapeCsv).join(","))
-    .join("\n");
-}
-
-function downloadCsv(csv: string, filename: string) {
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+// ─── Print helper ─────────────────────────────────────────────────────────────
+function printEntries(entries: Entry[], sessionName: string) {
+  const headers = ["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", "Shutdown"];
+  const rows = [...entries].sort(
+    (a, b) => a.chart_no.localeCompare(b.chart_no) || a.sno - b.sno
+  );
+  const thead = `<tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr>`;
+  const tbody = rows
+    .map(
+      (e) =>
+        `<tr>
+          <td>${e.loco1}</td><td>${e.chart_no}</td><td>${e.sno}</td>
+          <td>${e.loco2 ?? ""}</td><td>${e.train_no}</td><td>${e.station}</td>
+          <td>${e.date}</td>
+          <td style="color:${e.shutdown ? "#b91c1c" : "inherit"};font-weight:${e.shutdown ? "bold" : "normal"}">${e.shutdown ? "Yes" : "No"}</td>
+        </tr>`
+    )
+    .join("");
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${sessionName}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', monospace; font-size: 11px; padding: 20px; }
+h1 { font-size: 14px; margin-bottom: 12px; font-family: sans-serif; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #999; padding: 4px 8px; text-align: left; white-space: nowrap; }
+th { background: #f0f0f0; font-weight: bold; font-family: sans-serif;
+     font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+tr:nth-child(even) td { background: #fafafa; }
+@media print { @page { margin: 15mm; size: landscape; } }
+</style></head><body>
+<h1>${sessionName} — Entries (${rows.length})</h1>
+<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+</body></html>`;
+  const win = window.open("", "_blank", "width=960,height=700");
+  if (!win) { toast.error("Popup blocked — allow popups to print"); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 300);
 }
 
 async function fetchEntries(sessionId: string): Promise<Entry[]> {
@@ -56,6 +86,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
   const router = useRouter();
   const [saving,        setSaving]       = useState(false);
   const [exporting,     setExporting]    = useState(false);
+  const [printing,      setPrinting]     = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting,      setDeleting]     = useState(false);
 
@@ -76,11 +107,10 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
         body: JSON.stringify({ ended_at: new Date().toISOString() }),
       });
 
-      const csv      = entriesToCsv(sorted);
       const safeName = sessionName.replace(/[^a-z0-9_\- ]/gi, "_").trim();
-      downloadCsv(csv, `${safeName || sessionId}.csv`);
+      downloadExcel(sorted, safeName || sessionId);
 
-      toast.success("Session saved and CSV downloaded");
+      toast.success("Session saved and Excel downloaded");
       router.refresh();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Save failed");
@@ -88,7 +118,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
     setSaving(false);
   }
 
-  // ── Export CSV ──────────────────────────────────────────────────────────────
+  // ── Export Excel ─────────────────────────────────────────────────────
   async function handleExport() {
     if (exporting) return;
     setExporting(true);
@@ -97,14 +127,26 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
       const sorted  = [...entries].sort(
         (a, b) => a.chart_no.localeCompare(b.chart_no) || a.sno - b.sno
       );
-      const csv      = entriesToCsv(sorted);
       const safeName = sessionName.replace(/[^a-z0-9_\- ]/gi, "_").trim();
-      downloadCsv(csv, `${safeName || sessionId}.csv`);
-      toast.success("CSV downloaded");
+      downloadExcel(sorted, safeName || sessionId);
+      toast.success("Excel downloaded");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Export failed");
     }
     setExporting(false);
+  }
+
+  // ── Print ────────────────────────────────────────────────────────────
+  async function handlePrint() {
+    if (printing) return;
+    setPrinting(true);
+    try {
+      const entries = await fetchEntries(sessionId);
+      printEntries(entries, sessionName);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Print failed");
+    }
+    setPrinting(false);
   }
 
   // ── Delete Session ──────────────────────────────────────────────────────────
@@ -169,15 +211,26 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
         <span className="hidden sm:inline">Dashboard</span>
       </button>
 
-      {/* Export CSV */}
+      {/* Print */}
+      <button
+        onClick={handlePrint}
+        disabled={printing}
+        className={`${btnBase} border-neutral-300 text-neutral-600 hover:border-black hover:text-black`}
+        title="Print"
+      >
+        {printing ? <Loader2 size={13} className="animate-spin" /> : <Printer size={13} />}
+        <span className="hidden sm:inline">{printing ? "Loading…" : "Print"}</span>
+      </button>
+
+      {/* Export Excel */}
       <button
         onClick={handleExport}
         disabled={exporting}
         className={`${btnBase} border-neutral-300 text-neutral-600 hover:border-black hover:text-black`}
-        title="Export CSV"
+        title="Export Excel"
       >
         {exporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-        <span className="hidden sm:inline">{exporting ? "Exporting…" : "Export CSV"}</span>
+        <span className="hidden sm:inline">{exporting ? "Exporting…" : "Export Excel"}</span>
       </button>
 
       {/* Delete Session */}
