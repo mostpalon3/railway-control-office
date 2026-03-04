@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/mongodb/client";
 import { ObjectId } from "mongodb";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getCachedUser } from "@/lib/firebase/server";
 import { TabNav } from "./_components/tab-nav";
 import { SessionActions } from "./_components/session-actions";
 import { SessionStatus } from "./_components/session-status";
@@ -17,6 +18,10 @@ export default async function SessionLayout({
 }: SessionLayoutProps) {
   const { id } = await params;
 
+  // Auth guard — redirect to login if not signed in
+  const user = await getCachedUser();
+  if (!user) redirect("/auth/login");
+
   // Validate ObjectId format before hitting DB — prevents a 500 on garbage URLs
   if (!ObjectId.isValid(id)) notFound();
 
@@ -31,9 +36,10 @@ export default async function SessionLayout({
       ended_at: docSnap.ended_at ? (docSnap.ended_at as Date).toISOString() : null,
     };
   } catch (err) {
-    // Re-throw so the nearest error.tsx catches it (notFound errors propagate separately)
+    // notFound() uses a special digest — let it propagate normally
     if ((err as { digest?: string })?.digest?.startsWith("NEXT_NOT_FOUND")) throw err;
-    throw new Error("Database unavailable — could not load session");
+    // On any DB error, send user back to dashboard rather than showing error screen
+    redirect("/dashboard");
   }
 
   return (

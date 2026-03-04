@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, RefreshCw, ArrowLeft, Database, WifiOff } from "lucide-react";
 
@@ -45,10 +45,18 @@ export default function SessionError({
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const { icon, title, detail } = diagnose(error);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     console.error("[SessionError]", error);
   }, [error]);
+
+  // Auto-redirect to dashboard after countdown
+  useEffect(() => {
+    if (countdown <= 0) { router.replace("/dashboard"); return; }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, router]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-6 py-16">
@@ -63,6 +71,10 @@ export default function SessionError({
             </p>
             <h2 className="text-lg font-semibold text-black tracking-tight">{title}</h2>
             <p className="text-sm text-neutral-500">{detail}</p>
+            <p className="text-sm text-neutral-400">
+              Redirecting to dashboard in{" "}
+              <span className="font-semibold text-black">{countdown}s</span>…
+            </p>
           </div>
         </div>
 
@@ -79,22 +91,22 @@ export default function SessionError({
         {/* Actions */}
         <div className="flex flex-col gap-2.5">
           <button
-            onClick={reset}
+            onClick={() => router.replace("/dashboard")}
             className="flex items-center justify-center gap-2 h-9 border border-black
                        bg-black text-white text-[11px] font-mono uppercase tracking-wider
                        hover:bg-neutral-800 transition-colors rounded-none"
           >
-            <RefreshCw size={12} />
-            Retry
+            <ArrowLeft size={12} />
+            Back to Dashboard
           </button>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={reset}
             className="flex items-center justify-center gap-2 h-9 border border-neutral-300
                        text-neutral-600 text-[11px] font-mono uppercase tracking-wider
                        hover:border-black hover:text-black transition-colors rounded-none"
           >
-            <ArrowLeft size={12} />
-            Back to Dashboard
+            <RefreshCw size={12} />
+            Retry
           </button>
         </div>
       </div>
