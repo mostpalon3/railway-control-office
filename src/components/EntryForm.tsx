@@ -33,8 +33,10 @@ interface EntryFormProps {
 
 // ─── component ───────────────────────────────────────────────────────────────
 export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryFormProps) {
-  const [showScan,   setShowScan]   = useState(false);
-  const [isSaving,   setIsSaving]   = useState(false);
+  const [showScan,      setShowScan]      = useState(false);
+  const [isSaving,      setIsSaving]      = useState(false);
+  // Persists across form resets so operator doesn't have to re-select chart each entry
+  const [stickyChartNo, setStickyChartNo] = useState<EntryFormValues["chart_no"]>("" as EntryFormValues["chart_no"]);
 
   const {
     register,
@@ -65,7 +67,28 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
     setValue("session_id", sessionId);
   }, [sessionId, setValue]);
 
-  const watchedChartNo = watch("chart_no");
+  // Load from localStorage after mount to avoid SSR/client hydration mismatch
+  useEffect(() => {
+    const saved = localStorage.getItem("rco_active_chart");
+    if (saved) {
+      setStickyChartNo(saved as EntryFormValues["chart_no"]);
+      setValue("chart_no", saved as EntryFormValues["chart_no"], { shouldValidate: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep chart_no in sync with the sticky selector
+  useEffect(() => {
+    if (stickyChartNo) setValue("chart_no", stickyChartNo, { shouldValidate: false });
+  }, [stickyChartNo, setValue]);
+
+  function setChart(v: EntryFormValues["chart_no"]) {
+    setStickyChartNo(v);
+    setValue("chart_no", v, { shouldValidate: true });
+    if (v) localStorage.setItem("rco_active_chart", v);
+    else localStorage.removeItem("rco_active_chart");
+  }
+
   const watchedSno = watch("sno");
 
   async function attemptSave(values: EntryFormValues) {
@@ -112,13 +135,14 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
 
       toast.success("Entry saved \u2713", { duration: 1500 });
       onEntrySaved?.(newEntry);
+      // Keep chart_no sticky — operator usually enters multiple entries for same chart
       reset({
         session_id: sessionId,
         loco1: "",
         loco2: "",
         train_no: "",
         station: "",
-        chart_no: "" as EntryFormValues["chart_no"],
+        chart_no: stickyChartNo,
         sno: 0,
         date: nowISO(),
         shutdown: false,
@@ -137,7 +161,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
     if (result.loco2)    setValue("loco2",    result.loco2,    { shouldValidate: true });
     if (result.train_no) setValue("train_no", result.train_no, { shouldValidate: true });
     if (result.station)  setValue("station",  result.station,  { shouldValidate: true });
-    if (result.chart_no) setValue("chart_no", result.chart_no, { shouldValidate: true });
+    if (result.chart_no) setChart(result.chart_no);
     // Pre-select sno tile but do NOT auto-save — user confirms by tapping the tile
     if (result.sno)      setValue("sno",      result.sno,      { shouldValidate: false });
     toast.success("Form pre-filled from scan", { duration: 2000 });
@@ -182,6 +206,29 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         <ScanText size={13} />
         Scan Document
       </button>
+
+      {/* ── Sticky Chart No selector ─────────────────────────────────────── */}
+      <div className="flex items-center gap-2 mb-3 p-3 bg-neutral-50 border border-neutral-200">
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 shrink-0">
+          Active Chart
+        </span>
+        <select
+          value={stickyChartNo}
+          onChange={(e) => setChart(e.target.value as EntryFormValues["chart_no"])}
+          className="flex-1 border border-neutral-300 bg-white px-2 py-1.5 text-sm font-mono
+                     text-black focus:outline-none focus:border-black transition-colors rounded-none"
+        >
+          <option value="">— select chart —</option>
+          {CHART_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        {stickyChartNo && (
+          <span className="text-[10px] font-mono text-emerald-600 border border-emerald-300 px-1.5 py-0.5 shrink-0">
+            Chart {stickyChartNo}
+          </span>
+        )}
+      </div>
 
       {/* ── Entry form ────────────────────────────────────────────────────── */}
       <form
@@ -258,36 +305,12 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         </div>
       </div>
 
-      {/* ── Chart No radio grid ─────────────────────────────────────────── */}
-      <div>
-        <p className={labelCls}>
-          Chart No <span className="text-black">*</span>
+      {/* ── Chart No hidden — driven by sticky selector above ────────────── */}
+      {errors.chart_no && (
+        <p className="-mt-4 text-[11px] text-red-600">
+          {errors.chart_no.message as string} — select a chart above
         </p>
-        <Controller
-          control={control}
-          name="chart_no"
-          render={({ field }) => (
-            <div className="flex flex-wrap gap-1.5">
-              {CHART_OPTIONS.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => {
-                    field.onChange(opt);
-                    setValue("chart_no", opt, { shouldValidate: true });
-                  }}
-                  className={radioTileCls(field.value === opt)}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          )}
-        />
-        {errors.chart_no && (
-          <p className="mt-1.5 text-[11px] text-red-600">{errors.chart_no.message as string}</p>
-        )}
-      </div>
+      )}
       {/* ── Shutdown ──────────────────────────────────────────── */}
       <div>
         <Controller

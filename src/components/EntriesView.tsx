@@ -292,7 +292,7 @@ export function EntriesView({
   }
 
   // ── shared styles ──────────────────────────────────────────────────────────
-  const cellCls = "px-3 py-2 font-mono text-sm text-neutral-700 whitespace-nowrap";
+  const cellCls = "px-0.5 sm:px-2 py-1.5 font-mono text-sm text-neutral-700 whitespace-nowrap";
   const editInputCls =
     "w-full border border-neutral-400 bg-white px-1.5 py-1 text-xs font-mono " +
     "text-black focus:outline-none focus:border-black rounded-none min-w-0";
@@ -312,12 +312,12 @@ export function EntriesView({
         {/* Results count + realtime data-status pill */}
         <div className="flex items-center justify-between mb-3 min-h-[1.25rem]">
           {search ? (
-            <p className="text-[10px] font-mono text-neutral-400">
+            <p className="text-sm font-bold text-neutral-400">
               {filtered.length} result{filtered.length !== 1 ? "s" : ""} for{" "}
-              <span className="text-black">&ldquo;{search}&rdquo;</span>
+              <span className="text-neutral-500">&ldquo;{search}&rdquo;</span>
             </p>
           ) : (
-            <p className="text-[10px] font-mono text-neutral-400">
+            <p className="text-sm font-bold text-neutral-400">
               {entries.length} entr{entries.length !== 1 ? "ies" : "y"}
             </p>
           )}
@@ -337,31 +337,36 @@ export function EntriesView({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto -mx-6 sm:mx-0">
-            <div className="space-y-6 min-w-[820px] px-6 sm:px-0">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <div className="space-y-6 min-w-[820px] px-2 sm:px-0">
             {sortedKeys.map((key) => {
               const rows = grouped.get(key) ?? [];
               return (
                 <div key={key} className="border border-neutral-200">
                   {/* Group header */}
                   <div className={cn(
-                    "px-4 py-2 border-b border-neutral-200 flex items-center gap-2",
+                    "px-4 py-2 border-b border-neutral-200 flex items-center",
                     groupBy === "shutdown" && key === "true"
                       ? "bg-red-50"
                       : groupBy === "shutdown" && key === "false"
                       ? "bg-green-50"
                       : "bg-neutral-50"
                   )}>
-                    <span className="text-[9px] uppercase tracking-[0.15em] text-neutral-400 font-medium">
-                      {groupLabel[groupBy]}
-                    </span>
-                    <span className={cn(
-                      "font-mono text-sm font-semibold",
-                      groupBy === "shutdown" && key === "true" ? "text-red-700" :
-                      groupBy === "shutdown" && key === "false" ? "text-green-700" :
-                      "text-black"
-                    )}>{formatGroupKey(key, groupBy)}</span>
-                    <span className="ml-auto font-mono text-[10px] text-neutral-400">
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-[9px] uppercase tracking-[0.15em] text-neutral-400 font-medium">
+                        {groupLabel[groupBy]}
+                      </span>
+                      <span className={cn(
+                        "font-mono text-sm font-semibold",
+                        groupBy === "shutdown" && key === "true" ? "text-red-700" :
+                        groupBy === "shutdown" && key === "false" ? "text-green-700" :
+                        "text-black"
+                      )}>{formatGroupKey(key, groupBy)}</span>
+                      <span className="font-mono text-xs text-neutral-400 sm:hidden">
+                        {rows.length} entr{rows.length !== 1 ? "ies" : "y"}
+                      </span>
+                    </div>
+                    <span className="hidden sm:block font-mono text-xs text-neutral-400">
                       {rows.length} entr{rows.length !== 1 ? "ies" : "y"}
                     </span>
                   </div>
@@ -375,8 +380,10 @@ export function EntriesView({
                             (h, i) => (
                               <th
                                 key={i}
-                                className="text-left text-[11px] uppercase tracking-[0.15em]
-                                           font-bold text-neutral-500 px-3 py-2 whitespace-nowrap"
+                                className={cn(
+                                  "text-left text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-500 px-0.5 sm:px-2 py-2 whitespace-nowrap",
+                                  i === 0 && "pl-2"
+                                )}
                               >
                                 {h}
                               </th>
@@ -545,7 +552,7 @@ export function EntriesView({
                               ) : (
                                 <>
                                   {/* Display cells — matched text highlighted */}
-                                  <td className={cn(cellCls, "font-semibold text-[#ff2d78]")}>
+                                  <td className={cn(cellCls, "font-semibold text-[#ff2d78] pl-2 sm:pl-2")}>
                                     <Highlight text={entry.loco1} query={search} />
                                   </td>
                                   <td className={cn(cellCls, "text-[#00c8ff]")}>
@@ -560,7 +567,7 @@ export function EntriesView({
                                   <td className={cellCls}>
                                     <Highlight text={entry.train_no} query={search} />
                                   </td>
-                                  <td className={cellCls}>
+                                  <td className={cn(cellCls, "text-[#feb200]")}>
                                     <Highlight text={entry.station} query={search} />
                                   </td>
                                   <td className={cellCls}>
@@ -576,7 +583,7 @@ export function EntriesView({
                                       );
                                     })()}
                                   </td>
-                                  <td className="px-3 py-2">
+                                  <td className="px-0.5 sm:px-2 py-1.5">
                                     {entry.shutdown ? (
                                       <span className="text-[9px] uppercase tracking-wider font-medium
                                                        border border-red-300 text-red-600 px-1 py-0.5">
@@ -587,7 +594,7 @@ export function EntriesView({
                                     )}
                                   </td>
                                   {/* Edit / Delete */}
-                                  <td className="px-2 py-1.5">
+                                  <td className="px-0.5 sm:px-2 py-1.5">
                                     <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                       <button
                                         onClick={() => startEdit(entry)}

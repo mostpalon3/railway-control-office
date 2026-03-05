@@ -99,7 +99,7 @@ export default async function SessionLayout({
       </Suspense>
 
       {/* Page content */}
-      <main className="px-6 py-6">{children}</main>
+      <main className="px-2 sm:px-6 py-6">{children}</main>
     </div>
   );
 }

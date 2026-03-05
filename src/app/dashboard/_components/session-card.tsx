@@ -97,7 +97,7 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
         {/* Actions */}
         <div className="flex items-center gap-2 mt-auto pt-2 border-t border-neutral-100">
           <a
-            href={`/session/${session.id}/train`}
+            href={`/session/${session.id}/chart`}
             className="flex-1 text-center text-xs font-medium bg-black text-white
                        py-2 hover:bg-neutral-800 transition-colors rounded-none"
           >
