@@ -83,8 +83,8 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -147,6 +147,62 @@
   :focus-visible {
     outline: none;
   }
+}
+
+/* ── Dark mode overrides (hardcoded Tailwind classes) ───────────────────── */
+.dark .bg-black {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+/* text-white on a bg-black element must also flip to black */
+.dark .bg-black.text-white,
+.dark .bg-black .text-white {
+  color: #000000 !important;
+}
+/* hover:bg-neutral-800 on inverted buttons should stay light */
+.dark .bg-black:hover,
+.dark .hover\:bg-neutral-800:hover.bg-black {
+  background-color: #e5e5e5 !important;
+  color: #000000 !important;
+}
+.dark .bg-white {
+  background-color: #000 !important;
+}
+.dark .bg-neutral-50,
+.dark .bg-neutral-50\/60 {
+  background-color: #111 !important;
+}
+.dark .bg-neutral-100 {
+  background-color: #1a1a1a !important;
+}
+.dark .border-neutral-100 {
+  border-color: #2a2a2a !important;
+}
+.dark .border-neutral-200 {
+  border-color: #333 !important;
+}
+.dark .border-neutral-300 {
+  border-color: #444 !important;
+}
+.dark .text-black {
+  color: #ffffff !important;
+}
+.dark .text-neutral-900 { color: #ffffff !important; }
+.dark .text-neutral-800 { color: #ffffff !important; }
+.dark .text-neutral-700 { color: #ffffff !important; }
+.dark .text-neutral-600 { color: #dddddd !important; }
+.dark .text-neutral-500 { color: #bbbbbb !important; }
+.dark .text-neutral-400 { color: #999999 !important; }
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #111 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #aaaaaa !important;
 }
 
 /* ── Print styles ─────────────────────────────────────────────────────────── */

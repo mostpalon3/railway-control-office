@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, DM_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/lib/ThemeContext";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -53,8 +54,9 @@ export default function RootLayout({
       <body
         className={`${dmSans.variable} ${dmMono.variable} antialiased`}
       >
-        {children}
-        <Toaster
+        <ThemeProvider>
+          {children}
+          <Toaster
           position="top-right"
           toastOptions={{
             classNames: {
@@ -68,6 +70,7 @@ export default function RootLayout({
             },
           }}
         />
+        </ThemeProvider>
       </body>
     </html>
   );

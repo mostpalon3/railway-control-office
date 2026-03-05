@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { EntryForm } from "@/components/EntryForm";
 import type { Entry, ChartNo, Sno } from "@/lib/supabase/types";
 import { CHART_NO_VALUES } from "@/lib/validations";
+import { useTheme } from "@/lib/ThemeContext";
 
 // ─── highlight helper ────────────────────────────────────────────────────────
 function Highlight({ text, query }: { text: string; query: string }) {
@@ -116,6 +117,9 @@ export function EntriesView({
   groupBy,
   filterShutdown = false,
 }: EntriesViewProps) {
+  // ── Theme ──────────────────────────────────────────────────────────────────
+  const { isColored } = useTheme();
+
   // ── URL params ────────────────────────────────────────────────────────────
   const searchParams = useSearchParams();
   const search   = searchParams.get("q") ?? "";
@@ -552,22 +556,22 @@ export function EntriesView({
                               ) : (
                                 <>
                                   {/* Display cells — matched text highlighted */}
-                                  <td className={cn(cellCls, "font-semibold text-[#ff2d78] pl-2 sm:pl-2")}>
+                                  <td className={cn(cellCls, "font-semibold pl-2 sm:pl-2", isColored ? "text-[#ff2d78]" : "text-neutral-700")}>
                                     <Highlight text={entry.loco1} query={search} />
                                   </td>
-                                  <td className={cn(cellCls, "text-[#00c8ff]")}>
+                                  <td className={cn(cellCls, isColored ? "text-[#00c8ff]" : "text-neutral-700")}>
                                     <Highlight text={entry.chart_no} query={search} />
                                   </td>
-                                  <td className={cn(cellCls, "text-[#39e600]")}>
+                                  <td className={cn(cellCls, isColored ? "text-[#39e600]" : "text-neutral-700")}>
                                     <Highlight text={String(entry.sno)} query={search} />
                                   </td>
                                   <td className={cn(cellCls, "text-black")}>
                                     <Highlight text={entry.loco2 ?? "—"} query={search} />
                                   </td>
-                                  <td className={cellCls}>
+                                  <td className={cn(cellCls, "uppercase")}>
                                     <Highlight text={entry.train_no} query={search} />
                                   </td>
-                                  <td className={cn(cellCls, "text-[#feb200]")}>
+                                  <td className={cn(cellCls, "uppercase", isColored ? "text-[#feb200]" : "text-neutral-700")}>
                                     <Highlight text={entry.station} query={search} />
                                   </td>
                                   <td className={cellCls}>

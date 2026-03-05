@@ -5,6 +5,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X, Plus } from "lucide-react";
+import { useTheme } from "@/lib/ThemeContext";
 
 interface TabNavProps {
   sessionId: string;
@@ -22,6 +23,7 @@ export function TabNav({ sessionId }: TabNavProps) {
   const params      = useSearchParams();
   const router      = useRouter();
   const formOpen    = params.get("form") === "1";
+  const { isColored } = useTheme();
 
   // Local input state — decoupled from URL so every keystroke doesn't re-render
   const urlQ = params.get("q") ?? "";
@@ -76,7 +78,9 @@ export function TabNav({ sessionId }: TabNavProps) {
               className={cn(
                 "px-3 sm:px-5 py-3 text-[11px] uppercase tracking-[0.15em] font-bold transition-colors border-b-2",
                 active
-                  ? "border-emerald-500 text-emerald-600"
+                  ? isColored
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-black text-black"
                   : "border-transparent text-neutral-400 hover:text-black hover:border-neutral-300"
               )}
             >
@@ -95,7 +99,9 @@ export function TabNav({ sessionId }: TabNavProps) {
             "ml-auto self-center xl:hidden h-8 w-8 flex items-center justify-center border transition-colors",
             formOpen
               ? "border-black bg-black text-white"
-              : "border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600"
+              : isColored
+                ? "border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600"
+                : "border-black bg-black text-white hover:bg-neutral-800 hover:border-neutral-800"
           )}
         >
           {formOpen ? <X size={14} /> : <Plus size={14} />}

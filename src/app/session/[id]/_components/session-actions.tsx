@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X, RefreshCw, Palette } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { Entry } from "@/lib/supabase/types";
 import { CHART_NO_VALUES } from "@/lib/validations";
+import { useTheme, THEMES, THEME_LABELS } from "@/lib/ThemeContext";
 
 function sortEntries(entries: Entry[]) {
   return [...entries].sort((a, b) => {
@@ -92,6 +93,7 @@ async function fetchEntries(sessionId: string): Promise<Entry[]> {
 // ─── component ────────────────────────────────────────────────────────────────
 export function SessionActions({ sessionId, sessionName }: SessionActionsProps) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const [saving,        setSaving]       = useState(false);
   const [exporting,     setExporting]    = useState(false);
   const [printing,      setPrinting]     = useState(false);
@@ -216,6 +218,32 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+      {/* Theme selector */}
+      {/* Mobile: cycle icon */}
+      <button
+        type="button"
+        onClick={() => {
+          const idx = THEMES.indexOf(theme);
+          setTheme(THEMES[(idx + 1) % THEMES.length]);
+        }}
+        title={THEME_LABELS[theme]}
+        className={`sm:hidden ${btnBase} border-neutral-300 text-neutral-600 hover:border-black hover:text-black`}
+      >
+        <Palette size={13} />
+      </button>
+      {/* Desktop: full select */}
+      <select
+        value={theme}
+        onChange={(e) => setTheme(e.target.value as typeof theme)}
+        title="Select theme"
+        className="hidden sm:block h-7 border border-neutral-300 bg-white text-neutral-600 text-[11px] px-1.5 font-mono
+                   focus:outline-none focus:border-black transition-colors cursor-pointer"
+      >
+        {THEMES.map((t) => (
+          <option key={t} value={t}>{THEME_LABELS[t]}</option>
+        ))}
+      </select>
+
       {/* Back to dashboard */}
       <button
         onClick={() => router.push("/dashboard")}

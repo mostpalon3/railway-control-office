@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { toast } from "sonner";
+import { Palette } from "lucide-react";
+import { useTheme, THEMES, THEME_LABELS } from "@/lib/ThemeContext";
 
 interface NavbarProps {
   email: string | undefined;
@@ -11,6 +13,7 @@ interface NavbarProps {
 
 export function Navbar({ email }: NavbarProps) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   async function handleLogout() {
     try {
@@ -34,6 +37,19 @@ export function Navbar({ email }: NavbarProps) {
 
         {/* Right: User info + logout */}
         <div className="flex items-center gap-4">
+          {/* Theme cycle button */}
+          <button
+            type="button"
+            onClick={() => {
+              const idx = THEMES.indexOf(theme);
+              setTheme(THEMES[(idx + 1) % THEMES.length]);
+            }}
+            title={THEME_LABELS[theme]}
+            className="h-7 w-7 flex items-center justify-center border border-neutral-300
+                       text-neutral-500 hover:border-black hover:text-black transition-colors"
+          >
+            <Palette size={13} />
+          </button>
           {email && (
             <span className="font-mono text-[10px] text-neutral-400 hidden sm:block">
               {email}
