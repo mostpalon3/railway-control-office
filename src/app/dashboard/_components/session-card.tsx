@@ -33,6 +33,16 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [secretCode, setSecretCode] = useState("");
+
+  function openDeleteDialog() {
+    setSecretCode("");
+    setDeleteOpen(true);
+  }
+  function closeDeleteDialog() {
+    setSecretCode("");
+    setDeleteOpen(false);
+  }
 
   // isOwner: email match (new records) OR no '@' = old uid format (single-user app, must be you)
   const isOwner = session.created_by === currentUserId
@@ -104,7 +114,7 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
             Open
           </a>
           <button
-              onClick={() => setDeleteOpen(true)}
+              onClick={() => openDeleteDialog()}
               className="flex-1 text-xs border border-neutral-300 text-neutral-500
                          py-2 hover:border-red-400 hover:text-red-600 transition-colors rounded-none"
             >
@@ -114,7 +124,7 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
       </article>
 
       {/* Delete confirmation dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <Dialog open={deleteOpen} onOpenChange={(open) => { if (!open) closeDeleteDialog(); }}>
         <DialogContent className="rounded-none border border-neutral-200 shadow-none bg-white max-w-sm p-8">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-base font-semibold text-black">
@@ -128,9 +138,29 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
             </DialogDescription>
           </DialogHeader>
 
+          <div className="mb-4">
+            <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 mb-1.5">
+              Enter secret code to confirm
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              value={secretCode}
+              onChange={(e) => setSecretCode(e.target.value)}
+              placeholder="••••"
+              className="w-full border border-neutral-300 bg-white px-3 py-2 text-sm font-mono
+                         text-black focus:outline-none focus:border-black transition-colors rounded-none
+                         placeholder:text-neutral-300"
+              autoComplete="off"
+            />
+            {secretCode.length > 0 && secretCode !== "2612" && (
+              <p className="mt-1 text-[11px] text-red-600">Incorrect code</p>
+            )}
+          </div>
+
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setDeleteOpen(false)}
+              onClick={closeDeleteDialog}
               disabled={deleting}
               className="flex-1 border border-neutral-300 bg-white text-sm text-neutral-600
                          py-2 hover:border-black hover:text-black transition-colors rounded-none
@@ -140,7 +170,7 @@ export function SessionCard({ session, entryCount, currentUserId }: SessionCardP
             </button>
             <button
               onClick={handleDelete}
-              disabled={deleting}
+              disabled={deleting || secretCode !== "2612"}
               className="flex-1 bg-black text-white text-sm font-medium py-2
                          hover:bg-red-700 transition-colors rounded-none
                          disabled:opacity-40 disabled:cursor-not-allowed"

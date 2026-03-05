@@ -100,6 +100,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
   const [refreshing,    setRefreshing]   = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting,      setDeleting]     = useState(false);
+  const [secretCode,    setSecretCode]   = useState("");
 
   // ── Refresh ───────────────────────────────────────────────────────────
   async function handleRefresh() {
@@ -180,6 +181,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
       toast.error(err instanceof Error ? err.message : "Delete failed");
       setDeleting(false);
       setConfirmDelete(false);
+      setSecretCode("");
     }
   }
 
@@ -194,9 +196,20 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
         <span className="hidden sm:block text-[10px] font-mono text-neutral-600">
           Delete session &amp; all entries?
         </span>
+        <input
+          type="password"
+          inputMode="numeric"
+          value={secretCode}
+          onChange={(e) => setSecretCode(e.target.value)}
+          placeholder="code"
+          autoFocus
+          className="w-16 h-8 border border-neutral-300 bg-white px-2 text-xs font-mono
+                     text-black focus:outline-none focus:border-black transition-colors rounded-none
+                     placeholder:text-neutral-300"
+        />
         <button
           onClick={handleDelete}
-          disabled={deleting}
+          disabled={deleting || secretCode !== "2612"}
           className={`${btnBase} border-red-500 bg-red-500 text-white hover:bg-red-600`}
           title="Yes, delete"
         >
@@ -204,7 +217,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
           <span className="hidden sm:inline">{deleting ? "Deleting…" : "Yes, delete"}</span>
         </button>
         <button
-          onClick={() => setConfirmDelete(false)}
+          onClick={() => { setConfirmDelete(false); setSecretCode(""); }}
           disabled={deleting}
           className={`${btnBase} border-neutral-300 text-neutral-600 hover:border-black hover:text-black`}
           title="Cancel"
@@ -289,7 +302,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
 
       {/* Delete Session */}
       <button
-        onClick={() => setConfirmDelete(true)}
+        onClick={() => { setConfirmDelete(true); setSecretCode(""); }}
         className={`${btnBase} border-neutral-300 text-neutral-500 hover:border-red-400 hover:text-red-600`}
         title="Delete session"
       >
