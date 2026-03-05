@@ -6,6 +6,7 @@ import { TabNav } from "./_components/tab-nav";
 import { SessionActions } from "./_components/session-actions";
 import { SessionStatus } from "./_components/session-status";
 import type { Session } from "@/lib/supabase/types";
+import { Suspense } from "react";
 
 interface SessionLayoutProps {
   children: React.ReactNode;
@@ -80,7 +81,22 @@ export default async function SessionLayout({
       </header>
 
       {/* Tab navigation */}
-      <TabNav sessionId={id} />
+      <Suspense fallback={
+        <div className="border-b border-neutral-200 px-6">
+          <div className="flex gap-0 pt-0.5">
+            {[80, 72, 64, 60].map((w, i) => (
+              <div key={i} className="px-5 py-3">
+                <div className="h-2.5 bg-neutral-100 animate-pulse" style={{ width: w }} />
+              </div>
+            ))}
+          </div>
+          <div className="pb-3">
+            <div className="h-8 w-full bg-neutral-50 border border-neutral-200" />
+          </div>
+        </div>
+      }>
+        <TabNav sessionId={id} />
+      </Suspense>
 
       {/* Page content */}
       <main className="px-6 py-6">{children}</main>
