@@ -208,14 +208,14 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
       </button>
 
       {/* ── Sticky Chart No selector ─────────────────────────────────────── */}
-      <div className="flex items-center gap-2 mb-3 p-3 bg-neutral-50 border border-neutral-200">
+      <div className="flex items-center gap-2 mb-3 p-3 bg-neutral-50 border border-neutral-200 overflow-hidden">
         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 shrink-0">
           Active Chart
         </span>
         <select
           value={stickyChartNo}
           onChange={(e) => setChart(e.target.value as EntryFormValues["chart_no"])}
-          className="flex-1 border border-neutral-300 bg-white px-2 py-1.5 text-sm font-mono
+          className="min-w-0 flex-1 border border-neutral-300 bg-white px-2 py-1.5 text-sm font-mono
                      text-black focus:outline-none focus:border-black transition-colors rounded-none"
         >
           <option value="">— select chart —</option>
