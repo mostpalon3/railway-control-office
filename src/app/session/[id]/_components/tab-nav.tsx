@@ -74,7 +74,7 @@ export function TabNav({ sessionId }: TabNavProps) {
               key={base}
               href={to}
               className={cn(
-                "px-3 sm:px-5 py-3 text-[11px] uppercase tracking-[0.15em] font-medium transition-colors border-b-2",
+                "px-3 sm:px-5 py-3 text-[11px] uppercase tracking-[0.15em] font-bold transition-colors border-b-2",
                 active
                   ? "border-emerald-500 text-emerald-600"
                   : "border-transparent text-neutral-400 hover:text-black hover:border-neutral-300"

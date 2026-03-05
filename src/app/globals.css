@@ -141,6 +141,7 @@
   input[type="number"],
   [inputmode="numeric"] {
     font-family: var(--font-dm-mono), monospace;
+    font-weight: 500;
   }
   /* Remove default focus rings — replaced with border-black */
   :focus-visible {
