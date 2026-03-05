@@ -18,16 +18,16 @@ function downloadExcel(entries: Entry[], filename: string) {
     "LOCO 1":     e.loco1,
     "Chart No":   e.chart_no,
     "S.No":       e.sno,
-    "LOCO 2":     e.loco2 ?? "",
     "Train Name": e.train_no,
+    "LOCO 2":     e.loco2 ?? "",
     "Station":    e.station,
     "Date":       e.date,
     "Shutdown":   e.shutdown ? "Yes" : "No",
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   ws["!cols"] = [
-    { wch: 12 }, { wch: 10 }, { wch: 6 }, { wch: 12 },
-    { wch: 14 }, { wch: 16 }, { wch: 20 }, { wch: 10 },
+    { wch: 12 }, { wch: 10 }, { wch: 6 }, { wch: 14 },
+    { wch: 12 }, { wch: 16 }, { wch: 20 }, { wch: 10 },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Entries");
@@ -36,7 +36,7 @@ function downloadExcel(entries: Entry[], filename: string) {
 
 // ─── Print helper ─────────────────────────────────────────────────────────────
 function printEntries(entries: Entry[], sessionName: string) {
-  const headers = ["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", "Shutdown"];
+  const headers = ["LOCO 1", "Chart No", "S.No", "Train Name", "LOCO 2", "Station", "Date", "Shutdown"];
   const rows = [...entries].sort(
     (a, b) => a.chart_no.localeCompare(b.chart_no) || a.sno - b.sno
   );
@@ -46,7 +46,7 @@ function printEntries(entries: Entry[], sessionName: string) {
       (e) =>
         `<tr>
           <td>${e.loco1}</td><td>${e.chart_no}</td><td>${e.sno}</td>
-          <td>${e.loco2 ?? ""}</td><td>${e.train_no}</td><td>${e.station}</td>
+          <td>${e.train_no}</td><td>${e.loco2 ?? ""}</td><td>${e.station}</td>
           <td>${e.date}</td>
           <td style="color:${e.shutdown ? "#b91c1c" : "inherit"};font-weight:${e.shutdown ? "bold" : "normal"}">${e.shutdown ? "Yes" : "No"}</td>
         </tr>`

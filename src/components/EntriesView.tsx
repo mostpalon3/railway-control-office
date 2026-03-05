@@ -371,7 +371,7 @@ export function EntriesView({
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b border-neutral-100">
-                          {["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", "SD", ""].map(
+                          {["LOCO 1", "Chart No", "S.No", "Train Name", "LOCO 2", "Station", "Date", "SD", ""].map(
                             (h, i) => (
                               <th
                                 key={i}
@@ -440,17 +440,17 @@ export function EntriesView({
                                   <td className="px-2 py-1.5">
                                     <input
                                       className={editInputCls}
-                                      value={editValues.loco2 ?? ""}
-                                      onChange={(e) => editField("loco2", e.target.value)}
-                                      style={{ width: "6rem" }}
+                                      value={editValues.train_no}
+                                      onChange={(e) => editField("train_no", e.target.value)}
+                                      style={{ width: "5.5rem" }}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5">
                                     <input
                                       className={editInputCls}
-                                      value={editValues.train_no}
-                                      onChange={(e) => editField("train_no", e.target.value)}
-                                      style={{ width: "5.5rem" }}
+                                      value={editValues.loco2 ?? ""}
+                                      onChange={(e) => editField("loco2", e.target.value)}
+                                      style={{ width: "6rem" }}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5">
@@ -554,11 +554,11 @@ export function EntriesView({
                                   <td className={cellCls}>
                                     <Highlight text={String(entry.sno)} query={search} />
                                   </td>
-                                  <td className={cn(cellCls, "text-neutral-400")}>
-                                    <Highlight text={entry.loco2 ?? "—"} query={search} />
-                                  </td>
                                   <td className={cellCls}>
                                     <Highlight text={entry.train_no} query={search} />
+                                  </td>
+                                  <td className={cn(cellCls, "text-neutral-400")}>
+                                    <Highlight text={entry.loco2 ?? "—"} query={search} />
                                   </td>
                                   <td className={cellCls}>
                                     <Highlight text={entry.station} query={search} />
