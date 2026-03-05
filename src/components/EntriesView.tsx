@@ -375,8 +375,8 @@ export function EntriesView({
                             (h, i) => (
                               <th
                                 key={i}
-                                className="text-left text-[9px] uppercase tracking-[0.15em]
-                                           font-medium text-neutral-400 px-3 py-2 whitespace-nowrap"
+                                className="text-left text-[11px] uppercase tracking-[0.15em]
+                                           font-bold text-neutral-500 px-3 py-2 whitespace-nowrap"
                               >
                                 {h}
                               </th>
@@ -557,7 +557,7 @@ export function EntriesView({
                                   <td className={cellCls}>
                                     <Highlight text={entry.train_no} query={search} />
                                   </td>
-                                  <td className={cn(cellCls, "text-neutral-400")}>
+                                  <td className={cn(cellCls, "text-black")}>
                                     <Highlight text={entry.loco2 ?? "—"} query={search} />
                                   </td>
                                   <td className={cellCls}>

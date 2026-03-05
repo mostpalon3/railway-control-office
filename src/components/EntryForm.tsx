@@ -156,7 +156,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
     "placeholder:text-neutral-300 focus:outline-none focus:border-black transition-colors rounded-none";
 
   const labelCls =
-    "block text-[10px] font-medium text-neutral-500 uppercase tracking-[0.15em] mb-1.5";
+    "block text-[10px] font-bold text-neutral-600 uppercase tracking-[0.15em] mb-1.5";
 
   function radioTileCls(selected: boolean) {
     return cn(
