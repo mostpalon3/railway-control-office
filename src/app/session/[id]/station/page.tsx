@@ -34,6 +34,8 @@ export default async function StationPage({ params }: StationPageProps) {
       sno:        d.sno,
       date:       d.date as string,
       shutdown:   d.shutdown === true,
+      shed1:      (d.shed1 as string | null) ?? null,
+      shed2:      (d.shed2 as string | null) ?? null,
       created_by: (d.created_by as string | null) ?? null,
       created_at: (d.created_at as Date).toISOString(),
     }));
