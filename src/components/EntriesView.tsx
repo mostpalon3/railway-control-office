@@ -107,6 +107,8 @@ function blankEdit(entry: Entry): EditState {
     sno:      entry.sno,
     date:     entry.date,
     shutdown: entry.shutdown ?? false,
+    shed1:    entry.shed1 ?? null,
+    shed2:    entry.shed2 ?? null,
   };
 }
 
@@ -277,6 +279,8 @@ export function EntriesView({
           sno:      editValues.sno,
           date:     editValues.date,
           shutdown: editValues.shutdown,
+          shed1:    editValues.shed1?.trim() || null,
+          shed2:    editValues.shed2?.trim() || null,
         }),
       });
       if (!res.ok) throw new Error("Update failed");
@@ -423,6 +427,13 @@ export function EntriesView({
                                       onChange={(e) => editField("loco1", e.target.value)}
                                       style={{ width: "6rem" }}
                                     />
+                                    <input
+                                      className={cn(editInputCls, "mt-0.5")}
+                                      value={editValues.shed1 ?? ""}
+                                      onChange={(e) => editField("shed1", e.target.value || null)}
+                                      placeholder="shed1"
+                                      style={{ width: "6rem" }}
+                                    />
                                   </td>
                                   <td className="px-2 py-1.5">
                                     <select
@@ -453,6 +464,13 @@ export function EntriesView({
                                       className={editInputCls}
                                       value={editValues.loco2 ?? ""}
                                       onChange={(e) => editField("loco2", e.target.value)}
+                                      style={{ width: "6rem" }}
+                                    />
+                                    <input
+                                      className={cn(editInputCls, "mt-0.5")}
+                                      value={editValues.shed2 ?? ""}
+                                      onChange={(e) => editField("shed2", e.target.value || null)}
+                                      placeholder="shed2"
                                       style={{ width: "6rem" }}
                                     />
                                   </td>
@@ -558,6 +576,9 @@ export function EntriesView({
                                   {/* Display cells — matched text highlighted */}
                                   <td className={cn(cellCls, "font-semibold pl-2 sm:pl-2", isColored ? "text-[#ff2d78]" : "text-neutral-700")}>
                                     <Highlight text={entry.loco1} query={search} />
+                                    {entry.shed1 && (
+                                      <span className="block text-[10px] text-neutral-400 font-mono uppercase">{entry.shed1}</span>
+                                    )}
                                   </td>
                                   <td className={cn(cellCls, isColored ? "text-[#00c8ff]" : "text-neutral-700")}>
                                     <Highlight text={entry.chart_no} query={search} />
@@ -567,6 +588,9 @@ export function EntriesView({
                                   </td>
                                   <td className={cn(cellCls, "text-black")}>
                                     <Highlight text={entry.loco2 ?? "—"} query={search} />
+                                    {entry.shed2 && (
+                                      <span className="block text-[10px] text-neutral-400 font-mono uppercase">{entry.shed2}</span>
+                                    )}
                                   </td>
                                   <td className={cn(cellCls, "uppercase")}>
                                     <Highlight text={entry.train_no} query={search} />

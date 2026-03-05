@@ -40,6 +40,8 @@ export async function GET(req: NextRequest) {
     sno:        d.sno,
     date:       d.date,
     shutdown:   d.shutdown === true,
+    shed1:       d.shed1 ?? null,
+    shed2:       d.shed2 ?? null,
     created_by: d.created_by ?? null,
     created_at: (d.created_at as Date).toISOString(),
   }));
@@ -54,7 +56,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { session_id, loco1, loco2, train_no, station, chart_no, sno, date, shutdown } = body;
+  const { session_id, loco1, loco2, train_no, station, chart_no, sno, date, shutdown, shed1, shed2 } = body;
 
   if (!session_id || !loco1 || !train_no || !station || !chart_no || !sno || !date) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -83,6 +85,8 @@ export async function POST(req: NextRequest) {
     sno:        Number(sno),
     date,
     shutdown:   shutdown === true,
+    shed1:      shed1?.trim().toUpperCase() || null,
+    shed2:      shed2?.trim().toUpperCase() || null,
     created_by: user.email,
     created_at: now,
   });
@@ -103,6 +107,8 @@ export async function POST(req: NextRequest) {
       sno:        Number(sno),
       date,
       shutdown:   shutdown === true,
+      shed1:      shed1?.trim().toUpperCase() || null,
+      shed2:      shed2?.trim().toUpperCase() || null,
       created_by: user.email,
       created_at: now.toISOString(),
     },

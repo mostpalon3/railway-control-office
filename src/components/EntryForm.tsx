@@ -53,6 +53,8 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
       session_id: sessionId,
       loco1: "",
       loco2: "",
+      shed1: "",
+      shed2: "",
       train_no: "",
       station: "",
       chart_no: "" as EntryFormValues["chart_no"],
@@ -112,6 +114,8 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
           session_id: values.session_id,
           loco1:      values.loco1.trim(),
           loco2:      values.loco2?.trim() || null,
+          shed1:      values.shed1?.trim().toUpperCase() || null,
+          shed2:      values.shed2?.trim().toUpperCase() || null,
           train_no:   values.train_no.trim(),
           station:    values.station.trim(),
           chart_no:   values.chart_no,
@@ -140,6 +144,8 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         session_id: sessionId,
         loco1: "",
         loco2: "",
+        shed1: "",
+        shed2: "",
         train_no: "",
         station: "",
         chart_no: stickyChartNo,
@@ -236,38 +242,65 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         className="bg-white border border-neutral-200 p-6 space-y-6"
         noValidate
       >
-      {/* ── Row 1: Loco 1 + Loco 2 ─────────────────────────────────────── */}
+      {/* ── Row 1: Loco 1 + Loco 2 (each with their shed below) ─────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="loco1" className={labelCls}>
-            Loco 1 <span className="text-black">*</span>
-          </label>
-          <input
-            id="loco1"
-            inputMode="numeric"
-            {...register("loco1")}
-            className={inputCls}
-            placeholder="e.g. 12345"
-          />
-          {errors.loco1 && (
-            <p className="mt-1 text-[11px] text-red-600">{errors.loco1.message}</p>
-          )}
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="loco1" className={labelCls}>
+              Loco 1 <span className="text-black">*</span>
+            </label>
+            <input
+              id="loco1"
+              inputMode="numeric"
+              {...register("loco1")}
+              className={inputCls}
+              placeholder="e.g. 12345"
+            />
+            {errors.loco1 && (
+              <p className="mt-1 text-[11px] text-red-600">{errors.loco1.message}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="shed1" className={labelCls}>
+              Shed 1{" "}
+              <span className="text-neutral-300 normal-case tracking-normal text-[9px]">optional</span>
+            </label>
+            <input
+              id="shed1"
+              type="text"
+              {...register("shed1")}
+              className={cn(inputCls, "uppercase")}
+              placeholder="e.g. LKO"
+            />
+          </div>
         </div>
-
-        <div>
-          <label htmlFor="loco2" className={labelCls}>
-            Loco 2{" "}
-            <span className="text-neutral-300 normal-case tracking-normal text-[9px]">
-              optional
-            </span>
-          </label>
-          <input
-            id="loco2"
-            inputMode="numeric"
-            {...register("loco2")}
-            className={inputCls}
-            placeholder="e.g. 67890"
-          />
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="loco2" className={labelCls}>
+              Loco 2{" "}
+              <span className="text-neutral-300 normal-case tracking-normal text-[9px]">optional</span>
+            </label>
+            <input
+              id="loco2"
+              inputMode="numeric"
+              {...register("loco2")}
+              className={inputCls}
+              placeholder="e.g. 67890"
+            />
+          </div>
+          <div>
+            <label htmlFor="shed2" className={labelCls}>
+              Shed 2{" "}
+              <span className="text-neutral-300 normal-case tracking-normal text-[9px]">optional</span>
+            </label>
+            <input
+              id="shed2"
+              type="text"
+              {...register("shed2")}
+              className={cn(inputCls, "uppercase")}
+              placeholder="e.g. GZB"
+            />
+          </div>
         </div>
       </div>
 

@@ -27,6 +27,7 @@ export async function PATCH(
         ...(body.sno      !== undefined && { sno:      Number(body.sno)     }),
         ...(body.date     !== undefined && { date:     body.date            }),
         ...(body.shutdown !== undefined && { shutdown: body.shutdown === true }),
+        ...(body.shed     !== undefined && { shed:     body.shed?.trim().toUpperCase() || null }),
       },
     }
   );

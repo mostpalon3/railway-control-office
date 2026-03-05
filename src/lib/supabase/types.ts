@@ -40,6 +40,8 @@ export interface Entry {
   sno: Sno;
   date: string;                // date ISO string YYYY-MM-DD
   shutdown: boolean;           // loco shut down?
+  shed1: string | null;        // shed/depot for loco1
+  shed2: string | null;        // shed/depot for loco2
   created_by: string | null;   // auth.users.id
   created_at: string;          // timestamptz ISO string
 }
@@ -54,12 +56,14 @@ export type EntryInsert = {
   sno: Sno;
   date?: string;
   shutdown?: boolean;
+  shed1?: string | null;
+  shed2?: string | null;
   created_by?: string | null;
   created_at?: string;
 };
 
 export type EntryUpdate = Partial<
-  Pick<Entry, "loco1" | "loco2" | "train_no" | "station" | "chart_no" | "sno" | "date">
+  Pick<Entry, "loco1" | "loco2" | "train_no" | "station" | "chart_no" | "sno" | "date" | "shed1" | "shed2">
 >;
 
 // ─── Supabase Database type ───────────────

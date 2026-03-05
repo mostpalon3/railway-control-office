@@ -59,5 +59,7 @@ export const entrySchema = z.object({
     .min(1, "S. No is required"),
   date: z.string().min(1, "Date is required"),
   shutdown: z.boolean(),
+  shed1: z.string().optional(),
+  shed2: z.string().optional(),
 });
 export type EntryFormValues = z.infer<typeof entrySchema>;
