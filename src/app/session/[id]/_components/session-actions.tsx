@@ -6,6 +6,15 @@ import { toast } from "sonner";
 import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X, RefreshCw } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { Entry } from "@/lib/supabase/types";
+import { CHART_NO_VALUES } from "@/lib/validations";
+
+function sortEntries(entries: Entry[]) {
+  return [...entries].sort((a, b) => {
+    const ai = CHART_NO_VALUES.indexOf(a.chart_no as typeof CHART_NO_VALUES[number]);
+    const bi = CHART_NO_VALUES.indexOf(b.chart_no as typeof CHART_NO_VALUES[number]);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi) || a.sno - b.sno;
+  });
+}
 
 interface SessionActionsProps {
   sessionId: string;
@@ -14,12 +23,13 @@ interface SessionActionsProps {
 
 // ─── Excel helpers ────────────────────────────────────────────────────────────
 function downloadExcel(entries: Entry[], filename: string) {
-  const rows = entries.map((e) => ({
+  const sorted = sortEntries(entries);
+  const rows = sorted.map((e) => ({
     "LOCO 1":     e.loco1,
     "Chart No":   e.chart_no,
     "S.No":       e.sno,
-    "Train Name": e.train_no,
     "LOCO 2":     e.loco2 ?? "",
+    "Train Name": e.train_no,
     "Station":    e.station,
     "Date":       e.date,
     "Shutdown":   e.shutdown ? "Yes" : "No",
@@ -36,17 +46,15 @@ function downloadExcel(entries: Entry[], filename: string) {
 
 // ─── Print helper ─────────────────────────────────────────────────────────────
 function printEntries(entries: Entry[], sessionName: string) {
-  const headers = ["LOCO 1", "Chart No", "S.No", "Train Name", "LOCO 2", "Station", "Date", "Shutdown"];
-  const rows = [...entries].sort(
-    (a, b) => a.chart_no.localeCompare(b.chart_no) || a.sno - b.sno
-  );
+  const headers = ["LOCO 1", "Chart No", "S.No", "LOCO 2", "Train Name", "Station", "Date", "Shutdown"];
+  const rows = sortEntries(entries);
   const thead = `<tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr>`;
   const tbody = rows
     .map(
       (e) =>
         `<tr>
           <td>${e.loco1}</td><td>${e.chart_no}</td><td>${e.sno}</td>
-          <td>${e.train_no}</td><td>${e.loco2 ?? ""}</td><td>${e.station}</td>
+          <td>${e.loco2 ?? ""}</td><td>${e.train_no}</td><td>${e.station}</td>
           <td>${e.date}</td>
           <td style="color:${e.shutdown ? "#b91c1c" : "inherit"};font-weight:${e.shutdown ? "bold" : "normal"}">${e.shutdown ? "Yes" : "No"}</td>
         </tr>`
@@ -107,9 +115,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
     setSaving(true);
     try {
       const entries = await fetchEntries(sessionId);
-      const sorted  = [...entries].sort(
-        (a, b) => a.chart_no.localeCompare(b.chart_no) || a.sno - b.sno
-      );
+      const sorted  = sortEntries(entries);
 
       // Mark session as ended
       await fetch(`/api/sessions/${sessionId}`, {
@@ -135,9 +141,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
     setExporting(true);
     try {
       const entries = await fetchEntries(sessionId);
-      const sorted  = [...entries].sort(
-        (a, b) => a.chart_no.localeCompare(b.chart_no) || a.sno - b.sno
-      );
+      const sorted  = sortEntries(entries);
       const safeName = sessionName.replace(/[^a-z0-9_\- ]/gi, "_").trim();
       downloadExcel(sorted, safeName || sessionId);
       toast.success("Excel downloaded");

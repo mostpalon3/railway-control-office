@@ -292,7 +292,7 @@ export function EntriesView({
   }
 
   // ── shared styles ──────────────────────────────────────────────────────────
-  const cellCls = "px-3 py-2 font-mono text-xs text-neutral-700 whitespace-nowrap";
+  const cellCls = "px-3 py-2 font-mono text-sm text-neutral-700 whitespace-nowrap";
   const editInputCls =
     "w-full border border-neutral-400 bg-white px-1.5 py-1 text-xs font-mono " +
     "text-black focus:outline-none focus:border-black rounded-none min-w-0";
@@ -371,7 +371,7 @@ export function EntriesView({
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b border-neutral-100">
-                          {["LOCO 1", "Chart No", "S.No", "Train Name", "LOCO 2", "Station", "Date", "SD", ""].map(
+                          {["L1", "Chart", "S.No", "L2", "Train", "Stn", "Date", "SD", ""].map(
                             (h, i) => (
                               <th
                                 key={i}
@@ -440,17 +440,17 @@ export function EntriesView({
                                   <td className="px-2 py-1.5">
                                     <input
                                       className={editInputCls}
-                                      value={editValues.train_no}
-                                      onChange={(e) => editField("train_no", e.target.value)}
-                                      style={{ width: "5.5rem" }}
+                                      value={editValues.loco2 ?? ""}
+                                      onChange={(e) => editField("loco2", e.target.value)}
+                                      style={{ width: "6rem" }}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5">
                                     <input
                                       className={editInputCls}
-                                      value={editValues.loco2 ?? ""}
-                                      onChange={(e) => editField("loco2", e.target.value)}
-                                      style={{ width: "6rem" }}
+                                      value={editValues.train_no}
+                                      onChange={(e) => editField("train_no", e.target.value)}
+                                      style={{ width: "5.5rem" }}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5">
@@ -545,20 +545,20 @@ export function EntriesView({
                               ) : (
                                 <>
                                   {/* Display cells — matched text highlighted */}
-                                  <td className={cn(cellCls, "font-semibold text-black")}>
+                                  <td className={cn(cellCls, "font-semibold text-[#ff2d78]")}>
                                     <Highlight text={entry.loco1} query={search} />
                                   </td>
-                                  <td className={cellCls}>
+                                  <td className={cn(cellCls, "text-[#00c8ff]")}>
                                     <Highlight text={entry.chart_no} query={search} />
                                   </td>
-                                  <td className={cellCls}>
+                                  <td className={cn(cellCls, "text-[#39e600]")}>
                                     <Highlight text={String(entry.sno)} query={search} />
-                                  </td>
-                                  <td className={cellCls}>
-                                    <Highlight text={entry.train_no} query={search} />
                                   </td>
                                   <td className={cn(cellCls, "text-black")}>
                                     <Highlight text={entry.loco2 ?? "—"} query={search} />
+                                  </td>
+                                  <td className={cellCls}>
+                                    <Highlight text={entry.train_no} query={search} />
                                   </td>
                                   <td className={cellCls}>
                                     <Highlight text={entry.station} query={search} />

@@ -11,10 +11,10 @@ interface TabNavProps {
 }
 
 const TABS = [
+  { label: "By Chart",      short: "Chart",    href: (id: string) => `/session/${id}/chart` },
   { label: "By Train Name", short: "Train",    href: (id: string) => `/session/${id}/train` },
   { label: "By Station",    short: "Station",  href: (id: string) => `/session/${id}/station` },
-  { label: "By Chart",      short: "Chart",    href: (id: string) => `/session/${id}/chart` },
-  { label: "Shutdown",      short: "SD", href: (id: string) => `/session/${id}/shutdown` },
+  { label: "Shutdown",      short: "SD",        href: (id: string) => `/session/${id}/shutdown` },
 ] as const;
 
 export function TabNav({ sessionId }: TabNavProps) {
