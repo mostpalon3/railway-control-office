@@ -28,14 +28,23 @@ export function TabNav({ sessionId }: TabNavProps) {
   // Local input state — decoupled from URL so every keystroke doesn't re-render
   const urlQ = params.get("q") ?? "";
   const [inputValue, setInputValue] = useState(urlQ);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track the last value we pushed ourselves so the effect below doesn't
+  // revert fast typing when the debounce fires and updates the URL.
+  const lastPushedRef = useRef(urlQ);
 
-  // Keep local state in sync when URL changes externally (tab switch, back/forward)
+  // Sync local state only when the URL change was external (tab switch,
+  // back/forward) — NOT when it was triggered by our own debounced push.
   useEffect(() => {
-    setInputValue(params.get("q") ?? "");
+    const urlVal = params.get("q") ?? "";
+    if (urlVal !== lastPushedRef.current) {
+      setInputValue(urlVal);
+      lastPushedRef.current = urlVal;
+    }
   }, [params]);
 
   function pushSearch(value: string) {
+    lastPushedRef.current = value;
     const next = new URLSearchParams(params.toString());
     if (value) next.set("q", value); else next.delete("q");
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
