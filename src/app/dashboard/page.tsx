@@ -6,8 +6,7 @@ import { ObjectId } from "mongodb";
 import { getRedis, KEYS } from "@/lib/redis";
 import { memGet, memSet } from "@/lib/mem-cache";
 import { Navbar } from "./_components/navbar";
-import { SessionCard } from "./_components/session-card";
-import { NewSessionButton } from "./_components/new-session-button";
+import { SessionGrid } from "./_components/session-grid";
 import type { Session } from "@/lib/supabase/types";
 
 interface DashboardCache {
@@ -85,37 +84,11 @@ export default async function DashboardPage() {
       <Navbar email={user.email} isAdmin={isAdmin} />
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* Page header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-lg font-semibold text-black tracking-tight">Sessions</h1>
-            <p className="text-xs text-neutral-400 mt-0.5 font-mono">
-              {sessions.length} session{sessions.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <NewSessionButton />
-        </div>
-
-        {/* Grid */}
-        {sessions.length === 0 ? (
-          <div className="border border-dashed border-neutral-200 py-20 text-center">
-            <p className="text-sm text-neutral-400">No sessions yet.</p>
-            <p className="text-xs text-neutral-300 mt-1">
-              Create one using &quot;+ New Session&quot; above.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {sessions.map((s) => (
-              <SessionCard
-                key={s.id}
-                session={s}
-                entryCount={countMap[s.id] ?? 0}
-                currentUserId={user.email ?? user.uid}
-              />
-            ))}
-          </div>
-        )}
+        <SessionGrid
+          sessions={sessions}
+          countMap={countMap}
+          currentUserId={user.email ?? user.uid}
+        />
       </main>
     </div>
   );
