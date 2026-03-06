@@ -53,12 +53,12 @@ export default async function SessionLayout({
             {session?.name ?? id}
           </span>
           {session?.ended_at ? (
-            <span className="text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
+            <span className="hidden sm:inline text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
                              border border-neutral-300 text-neutral-500 font-medium">
               Closed
             </span>
           ) : (
-            <span className="text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
+            <span className="hidden sm:inline text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
                              border border-emerald-400 text-emerald-600 font-medium">
               Active
             </span>

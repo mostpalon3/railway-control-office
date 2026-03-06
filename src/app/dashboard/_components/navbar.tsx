@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
@@ -32,18 +33,29 @@ export function Navbar({ email, isAdmin }: NavbarProps) {
   return (
     <header className="border-b border-neutral-200 bg-white">
       <div className="max-w-7xl mx-auto px-6 h-12 flex items-center justify-between">
-        {/* Left: App title */}
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500 select-none">
-          Railway Control Office
-        </span>
+        {/* Left: Logo + app name */}
+        <div className="flex items-center gap-2 select-none">
+          <Image
+            src="/assets/android-chrome-192x192.png"
+            alt="RCO Logo"
+            width={24}
+            height={24}
+            className="rounded-sm"
+          />
+          <div className="flex flex-col leading-none gap-0.5">
+            <span className="font-mono text-[7px] uppercase tracking-[0.15em] text-neutral-400">Railway</span>
+            <span className="font-mono text-[7px] uppercase tracking-[0.15em] text-neutral-400">Control</span>
+            <span className="font-mono text-[7px] uppercase tracking-[0.15em] text-neutral-400">Office</span>
+          </div>
+        </div>
 
         {/* Right: User info + logout */}
         <div className="flex items-center gap-4">
           {/* Admin badge + Users link */}
           {isAdmin && (
             <>
-              <span className="font-mono text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
-                               bg-black text-white hidden sm:inline-block">
+              <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
+                               bg-black text-white">
                 Admin
               </span>
               <Link
@@ -55,6 +67,14 @@ export function Navbar({ email, isAdmin }: NavbarProps) {
                 <Users size={13} />
               </Link>
             </>
+          )}
+
+          {/* User badge for non-admins */}
+          {!isAdmin && (
+            <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
+                             border border-neutral-300 text-neutral-400">
+              User
+            </span>
           )}
 
           {/* Theme cycle button */}

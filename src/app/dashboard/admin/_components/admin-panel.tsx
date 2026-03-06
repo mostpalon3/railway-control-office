@@ -27,8 +27,14 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
   const [revokeCode, setRevokeCode] = useState("");
   const [revoking, setRevoking] = useState(false);
 
+  // ── Enable state ───────────────────────────────────────────────────────────
+  const [enableUid, setEnableUid] = useState<string | null>(null);
+  const [enableCode, setEnableCode] = useState("");
+  const [enabling, setEnabling] = useState(false);
+
   // ── Delete state ───────────────────────────────────────────────────────────
   const [deleteUid, setDeleteUid] = useState<string | null>(null);
+  const [deleteCode, setDeleteCode] = useState("");
   const [deleting, setDeleting] = useState(false);
 
   // ── Add email to allowlist ─────────────────────────────────────────────────
@@ -43,21 +49,27 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   function openRevoke(uid: string) {
-    setRevokeUid(uid);
-    setRevokeCode("");
+    setRevokeUid(uid); setRevokeCode("");
+    setEnableUid(null); setEnableCode("");
+    setDeleteUid(null);
+  }
+
+  function openEnable(uid: string) {
+    setEnableUid(uid); setEnableCode("");
+    setRevokeUid(null); setRevokeCode("");
     setDeleteUid(null);
   }
 
   function openDelete(uid: string) {
-    setDeleteUid(uid);
-    setRevokeUid(null);
-    setRevokeCode("");
+    setDeleteUid(uid); setDeleteCode("");
+    setRevokeUid(null); setRevokeCode("");
+    setEnableUid(null); setEnableCode("");
   }
 
   function cancelActions() {
-    setRevokeUid(null);
-    setDeleteUid(null);
-    setRevokeCode("");
+    setRevokeUid(null); setRevokeCode("");
+    setEnableUid(null); setEnableCode("");
+    setDeleteUid(null); setDeleteCode("");
   }
 
   async function handleRevoke(uid: string) {
@@ -84,6 +96,8 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
   }
 
   async function handleEnable(uid: string) {
+    if (enableCode !== "2612") return;
+    setEnabling(true);
     try {
       const res = await fetch(`/api/admin/users/${uid}`, {
         method: "PATCH",
@@ -95,13 +109,17 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
       setUsers((prev) =>
         prev.map((u) => (u.uid === uid ? { ...u, disabled: false } : u))
       );
+      cancelActions();
       toast.success("User enabled. They can log in again.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to enable user.");
+    } finally {
+      setEnabling(false);
     }
   }
 
   async function handleDelete(uid: string) {
+    if (deleteCode !== "2612") return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/users/${uid}`, { method: "DELETE" });
@@ -203,6 +221,7 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
           {users.map((u) => {
             const isSelf = u.email === currentUserEmail;
             const isRevokePending = revokeUid === u.uid;
+            const isEnablePending = enableUid === u.uid;
             const isDeletePending = deleteUid === u.uid;
 
             return (
@@ -232,7 +251,7 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
                   {/* Action buttons — hidden for self */}
                   {!isSelf && (
                     <div className="flex items-center gap-2 shrink-0">
-                      {!u.disabled && !isRevokePending && !isDeletePending && (
+                      {!u.disabled && !isRevokePending && !isEnablePending && !isDeletePending && (
                         <button
                           onClick={() => openRevoke(u.uid)}
                           className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1
@@ -242,9 +261,9 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
                           Revoke
                         </button>
                       )}
-                      {u.disabled && !isDeletePending && !isRevokePending && (
+                      {u.disabled && !isDeletePending && !isRevokePending && !isEnablePending && (
                         <button
-                          onClick={() => handleEnable(u.uid)}
+                          onClick={() => openEnable(u.uid)}
                           className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1
                                      border border-emerald-300 text-emerald-600
                                      hover:bg-emerald-50 transition-colors"
@@ -252,7 +271,7 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
                           Enable
                         </button>
                       )}
-                      {!isDeletePending && !isRevokePending && (
+                      {!isDeletePending && !isRevokePending && !isEnablePending && (
                         <button
                           onClick={() => openDelete(u.uid)}
                           className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1
@@ -262,7 +281,7 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
                           Delete
                         </button>
                       )}
-                      {(isRevokePending || isDeletePending) && (
+                      {(isRevokePending || isEnablePending || isDeletePending) && (
                         <button
                           onClick={cancelActions}
                           className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1
@@ -275,6 +294,34 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
                     </div>
                   )}
                 </div>
+
+                {/* Enable confirmation row */}
+                {isEnablePending && (
+                  <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-emerald-50 border-t border-emerald-100">
+                    <span className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">
+                      Enter code to confirm:
+                    </span>
+                    <input
+                      type="password"
+                      value={enableCode}
+                      onChange={(e) => setEnableCode(e.target.value)}
+                      placeholder="••••"
+                      autoFocus
+                      className="border border-emerald-300 bg-white px-2.5 py-1 text-sm text-black
+                                 w-24 focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                    <button
+                      onClick={() => handleEnable(u.uid)}
+                      disabled={enableCode !== "2612" || enabling}
+                      className="font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-1
+                                 bg-emerald-600 text-white border border-emerald-600
+                                 hover:bg-emerald-700 transition-colors
+                                 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {enabling ? "Enabling…" : "Yes, Enable"}
+                    </button>
+                  </div>
+                )}
 
                 {/* Revoke confirmation row */}
                 {isRevokePending && (
@@ -308,11 +355,20 @@ export function AdminPanel({ initialUsers, initialAllowlist, currentUserEmail }:
                 {isDeletePending && (
                   <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-red-50 border-t border-red-100">
                     <span className="font-mono text-[10px] text-red-700 uppercase tracking-widest">
-                      Permanently delete this account?
+                      Enter code to confirm:
                     </span>
+                    <input
+                      type="password"
+                      value={deleteCode}
+                      onChange={(e) => setDeleteCode(e.target.value)}
+                      placeholder="••••"
+                      autoFocus
+                      className="border border-red-300 bg-white px-2.5 py-1 text-sm text-black
+                                 w-24 focus:outline-none focus:border-red-500 font-mono"
+                    />
                     <button
                       onClick={() => handleDelete(u.uid)}
-                      disabled={deleting}
+                      disabled={deleteCode !== "2612" || deleting}
                       className="font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-1
                                  bg-red-500 text-white border border-red-500
                                  hover:bg-red-600 transition-colors
