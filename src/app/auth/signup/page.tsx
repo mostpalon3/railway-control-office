@@ -3,8 +3,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema, type SignupFormValues } from "@/lib/validations";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -22,19 +20,19 @@ export default function SignupPage() {
 
   async function onSubmit(values: SignupFormValues) {
     try {
-      const credential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const idToken = await credential.user.getIdToken();
-
-      const res = await fetch("/api/auth/session", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
 
+      const body = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        console.error("[signup session POST failed]", body);
-        toast.error(`Session error: ${body?.error ?? "unknown — check terminal logs"}`);
+        toast.error(body?.error ?? "Sign-up failed. Please try again.");
         return;
       }
 
@@ -43,18 +41,7 @@ export default function SignupPage() {
       router.refresh();
     } catch (err: unknown) {
       console.error("[signup error]", err);
-      const code = (err as { code?: string }).code ?? "";
-      if (code === "auth/email-already-in-use") {
-        toast.error("An account with this email already exists.");
-      } else if (code === "auth/operation-not-allowed") {
-        toast.error("Email/password sign-up is not enabled. Enable it in Firebase console → Authentication → Sign-in method.");
-      } else if (code === "auth/weak-password") {
-        toast.error("Password is too weak.");
-      } else if (code === "auth/unverified-email") {
-        toast.error("Email verification is enforced on your Firebase project. Go to Firebase console → Authentication → Settings → disable \"Require email verification\".");
-      } else {
-        toast.error(err instanceof Error ? err.message : "Sign-up failed");
-      }
+      toast.error(err instanceof Error ? err.message : "Sign-up failed");
     }
   }
 
@@ -165,6 +152,15 @@ export default function SignupPage() {
           >
             Sign in
           </Link>
+        </p>
+
+        {/* Contact admin notice */}
+        <p className="mt-4 text-[11px] text-neutral-400 text-center leading-relaxed border-t border-neutral-100 pt-4">
+          Don&apos;t have access?{" "}
+          Contact an admin —{" "}
+          <span className="font-mono text-neutral-500">sumitsagar2612@gmail.com</span>
+          {" "}or{" "}
+          <span className="font-mono text-neutral-500">shaileshkumar9771@gmail.com</span>
         </p>
       </div>
     </main>

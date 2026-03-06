@@ -28,9 +28,20 @@ export function getRedis(): Redis | null {
 /** Centralised cache key names */
 export const KEYS = {
   /** Cached Firebase auth uid keyed by SHA-256 of the session cookie */
-  auth:    (cookieHash: string) => `rco:auth:${cookieHash}`,
+  auth:      (cookieHash: string) => `rco:auth:${cookieHash}`,
   /** Cached { uid, email } keyed by SHA-256 of the session cookie */
-  authUser:(cookieHash: string) => `rco:authuser:${cookieHash}`,
+  authUser:  (cookieHash: string) => `rco:authuser:${cookieHash}`,
+  /** Cached decoded token (with revocation check) — 60 s TTL */
+  authCheck: (cookieHash: string) => `rco:authcheck:${cookieHash}`,
   /** Cached entries array keyed by MongoDB session id */
-  entries: (sessionId:  string) => `rco:entries:${sessionId}`,
+  entries:   (sessionId:  string) => `rco:entries:${sessionId}`,
+  /**
+   * Cached dashboard payload { sessions, countMap } — 30 s TTL.
+   * Busted on session create / patch / delete so the list stays fresh.
+   */
+  dashboard: "rco:dashboard" as const,
+  /** Cached Firebase user list for admin panel — 60 s TTL */
+  adminUsers: "rco:adminusers" as const,
+  /** Cached MongoDB allowlist for admin panel — 60 s TTL */
+  adminAllowlist: "rco:adminallowlist" as const,
 };

@@ -4,20 +4,60 @@ import { adminAuth } from "@/lib/firebase/admin";
 import { getRedis, KEYS } from "@/lib/redis";
 import { memGet, memSet } from "@/lib/mem-cache";
 
-const AUTH_TTL = 300; // cache uid for 5 minutes
+const AUTH_TTL = 300;       // cache uid for 5 minutes
+const AUTH_CHECK_TTL = 60;  // cache revocation check for 60 seconds
 
 /**
  * Reads the __session httpOnly cookie and verifies it with Firebase Admin.
- * Returns the decoded token (with uid, email, etc.) or null.
- * Used by server components (navigation, layout).
+ * Result is cached for 60 seconds (mem → Redis) so only one Firebase network
+ * call is made per user per minute instead of on every page load.
+ * If the account is revoked/disabled the cache is bypassed and null returned.
  */
 export async function getServerUser() {
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get("__session")?.value;
     if (!session) return null;
-    const decoded = await adminAuth.verifySessionCookie(session, false);
-    return decoded; // { uid, email, ... }
+
+    const hash     = createHash("sha256").update(session).digest("hex");
+    const cacheKey = KEYS.authCheck(hash);
+
+    // L1: in-memory — 0 ms
+    const mem = memGet<ReturnType<typeof adminAuth.verifySessionCookie> extends Promise<infer T> ? T : never>(cacheKey);
+    if (mem) return mem;
+
+    // L2: Redis
+    const redis = getRedis();
+    if (redis) {
+      const cached = await redis
+        .get<ReturnType<typeof adminAuth.verifySessionCookie> extends Promise<infer T> ? T : never>(cacheKey)
+        .catch(() => null);
+      if (cached) {
+        memSet(cacheKey, cached, AUTH_CHECK_TTL * 1000);
+        return cached;
+      }
+    }
+
+    // L3: Firebase Admin — with revocation check
+    let decoded: Awaited<ReturnType<typeof adminAuth.verifySessionCookie>>;
+    try {
+      decoded = await adminAuth.verifySessionCookie(session, true);
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? "";
+      if (
+        code === "auth/session-cookie-revoked" ||
+        code === "auth/user-disabled" ||
+        code === "auth/user-token-expired"
+      ) {
+        return null;
+      }
+      // Transient Firebase network error — fall back to local-only verify
+      decoded = await adminAuth.verifySessionCookie(session, false);
+    }
+
+    memSet(cacheKey, decoded, AUTH_CHECK_TTL * 1000);
+    redis?.set(cacheKey, decoded, { ex: AUTH_CHECK_TTL }).catch(() => {});
+    return decoded;
   } catch {
     return null;
   }

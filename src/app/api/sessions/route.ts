@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
 import { getCachedUser } from "@/lib/firebase/server";
+import { getRedis, KEYS } from "@/lib/redis";
+import { memDel } from "@/lib/mem-cache";
 
 /** POST /api/sessions  — create a new session */
 export async function POST(req: NextRequest) {
@@ -30,6 +32,9 @@ export async function POST(req: NextRequest) {
       ended_at:   null,
       created_by: user.email,
     });
+    // Bust dashboard cache so the new session appears immediately
+    memDel(KEYS.dashboard);
+    getRedis()?.del(KEYS.dashboard).catch(() => {});
     return NextResponse.json({ id: result.insertedId.toHexString() }, { status: 201 });
   } catch (err: unknown) {
     if (typeof err === "object" && err !== null && (err as { code?: number }).code === 11000) {

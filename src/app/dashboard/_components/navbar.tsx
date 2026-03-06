@@ -4,14 +4,16 @@ import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { toast } from "sonner";
-import { Palette } from "lucide-react";
+import { Palette, Users } from "lucide-react";
 import { useTheme, THEMES, THEME_LABELS } from "@/lib/ThemeContext";
+import Link from "next/link";
 
 interface NavbarProps {
   email: string | undefined;
+  isAdmin?: boolean;
 }
 
-export function Navbar({ email }: NavbarProps) {
+export function Navbar({ email, isAdmin }: NavbarProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
@@ -37,6 +39,24 @@ export function Navbar({ email }: NavbarProps) {
 
         {/* Right: User info + logout */}
         <div className="flex items-center gap-4">
+          {/* Admin badge + Users link */}
+          {isAdmin && (
+            <>
+              <span className="font-mono text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5
+                               bg-black text-white hidden sm:inline-block">
+                Admin
+              </span>
+              <Link
+                href="/dashboard/admin"
+                className="h-7 w-7 flex items-center justify-center border border-neutral-300
+                           text-neutral-500 hover:border-black hover:text-black transition-colors"
+                title="Manage users"
+              >
+                <Users size={13} />
+              </Link>
+            </>
+          )}
+
           {/* Theme cycle button */}
           <button
             type="button"

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
 import { getCachedUid } from "@/lib/firebase/server";
+import { bustEntriesCache } from "@/lib/entries-cache";
 
 /** PATCH /api/entries/[id]  — update an entry */
 export async function PATCH(
@@ -15,6 +16,11 @@ export async function PATCH(
   const body = await req.json();
 
   const db = await getDb();
+  // Fetch the entry first so we can bust the right session's cache after update
+  const existing = await db.collection("entries").findOne(
+    { _id: new ObjectId(id) },
+    { projection: { session_id: 1 } }
+  );
   await db.collection("entries").updateOne(
     { _id: new ObjectId(id) },
     {
@@ -31,6 +37,8 @@ export async function PATCH(
       },
     }
   );
+  // Bust entries cache so the updated content is served on next fetch
+  if (existing?.session_id) bustEntriesCache(existing.session_id as string);
 
   return NextResponse.json({ ok: true });
 }
@@ -45,7 +53,13 @@ export async function DELETE(
 
   const { id } = await params;
   const db = await getDb();
+  // Look up the entry's session_id before deletion so we can bust the right cache
+  const existing = await db.collection("entries").findOne(
+    { _id: new ObjectId(id) },
+    { projection: { session_id: 1 } }
+  );
   await db.collection("entries").deleteOne({ _id: new ObjectId(id) });
+  if (existing?.session_id) bustEntriesCache(existing.session_id as string);
 
   return NextResponse.json({ ok: true });
 }
