@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerUser } from "@/lib/firebase/server";
+import { getCachedUser } from "@/lib/firebase/server";
 import { isAdminEmail } from "@/lib/is-admin";
 import { getDb } from "@/lib/mongodb/client";
 import { ObjectId } from "mongodb";
@@ -17,7 +17,7 @@ const DASHBOARD_TTL_MS = 30_000; // 30 s mem
 const DASHBOARD_TTL_S  = 30;     // 30 s Redis
 
 export default async function DashboardPage() {
-  const user = await getServerUser();
+  const user = await getCachedUser();
   if (!user) redirect("/auth/login");
 
   const isAdmin = isAdminEmail(user.email);
@@ -48,7 +48,17 @@ export default async function DashboardPage() {
 
         const docs = await db
           .collection("sessions")
-          .find({})
+          .find(
+            {},
+            {
+              projection: {
+                name: 1,
+                started_at: 1,
+                ended_at: 1,
+                created_by: 1,
+              },
+            }
+          )
           .sort({ started_at: -1 })
           .toArray();
 
@@ -60,15 +70,13 @@ export default async function DashboardPage() {
           created_by: (d.created_by as string | null) ?? null,
         }));
 
-        const countResults = await Promise.all(
-          sessions.map((s) =>
-            db
-              .collection("entries")
-              .countDocuments({ session_id: s.id })
-              .then((count) => ({ id: s.id, count }))
-          )
-        );
-        countMap = Object.fromEntries(countResults.map((r) => [r.id, r.count]));
+        const countResults = await db
+          .collection("entries")
+          .aggregate<{ _id: string; count: number }>([
+            { $group: { _id: "$session_id", count: { $sum: 1 } } },
+          ])
+          .toArray();
+        countMap = Object.fromEntries(countResults.map((r) => [r._id, r.count]));
 
         const payload: DashboardCache = { sessions, countMap };
         memSet(cacheKey, payload, DASHBOARD_TTL_MS);
