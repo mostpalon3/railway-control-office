@@ -5,6 +5,17 @@ import { getCachedUser } from "@/lib/firebase/server";
 import { getRedis, KEYS } from "@/lib/redis";
 import { memDel } from "@/lib/mem-cache";
 
+async function invalidateDashboardCache() {
+  memDel(KEYS.dashboard);
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    await redis.del(KEYS.dashboard);
+  } catch {
+    // Redis is an L2 cache. Ignore invalidation failures and continue.
+  }
+}
+
 /** POST /api/sessions  — create a new session */
 export async function POST(req: NextRequest) {
   const user = await getCachedUser();
@@ -32,9 +43,8 @@ export async function POST(req: NextRequest) {
       ended_at:   null,
       created_by: user.email,
     });
-    // Bust dashboard cache so the new session appears immediately
-    memDel(KEYS.dashboard);
-    getRedis()?.del(KEYS.dashboard).catch(() => {});
+    // Bust dashboard cache before returning so next refresh sees fresh data.
+    await invalidateDashboardCache();
     return NextResponse.json({ id: result.insertedId.toHexString() }, { status: 201 });
   } catch (err: unknown) {
     if (typeof err === "object" && err !== null && (err as { code?: number }).code === 11000) {
