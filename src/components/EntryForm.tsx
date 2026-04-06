@@ -7,8 +7,7 @@ import { entrySchema, type EntryFormValues, CHART_NO_VALUES } from "@/lib/valida
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { ChartNo, Sno, Entry } from "@/lib/supabase/types";
-import { ScanModal, type ScanResult } from "@/components/ScanModal";
-import { ScanText, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const CHART_OPTIONS = [...CHART_NO_VALUES] as ChartNo[];
@@ -33,7 +32,6 @@ interface EntryFormProps {
 
 // ─── component ───────────────────────────────────────────────────────────────
 export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryFormProps) {
-  const [showScan,      setShowScan]      = useState(false);
   const [isSaving,      setIsSaving]      = useState(false);
   // Persists across form resets so operator doesn't have to re-select chart each entry
   const [stickyChartNo, setStickyChartNo] = useState<EntryFormValues["chart_no"]>("" as EntryFormValues["chart_no"]);
@@ -161,18 +159,6 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
     setIsSaving(false);
   }
 
-  // ─── handle scanned result ─────────────────────────────────────────────────
-  function handleScanApply(result: ScanResult) {
-    if (result.loco1)    setValue("loco1",    result.loco1,    { shouldValidate: true });
-    if (result.loco2)    setValue("loco2",    result.loco2,    { shouldValidate: true });
-    if (result.train_no) setValue("train_no", result.train_no, { shouldValidate: true });
-    if (result.station)  setValue("station",  result.station,  { shouldValidate: true });
-    if (result.chart_no) setChart(result.chart_no);
-    // Pre-select sno tile but do NOT auto-save — user confirms by tapping the tile
-    if (result.sno)      setValue("sno",      result.sno,      { shouldValidate: false });
-    toast.success("Form pre-filled from scan", { duration: 2000 });
-  }
-
   // Called when user taps an SNO option — setValue updates RHF's internal ref
   // synchronously, so handleSubmit sees the new value immediately.
   function handleSnoSelect(value: Sno) {
@@ -182,7 +168,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
 
   // ─── shared class helpers ──────────────────────────────────────────────────
   const inputCls =
-    "w-full border border-neutral-300 bg-white px-3 py-2 text-sm text-black font-mono " +
+    "w-full border border-neutral-300 bg-white px-3 py-2.5 md:py-2 md:text-sm text-base text-black font-mono " +
     "placeholder:text-neutral-300 focus:outline-none focus:border-black transition-colors rounded-none";
 
   const labelCls =
@@ -201,18 +187,6 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
   // ─── render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Scan Document button ──────────────────────────────────────────── */}
-      <button
-        type="button"
-        onClick={() => setShowScan(true)}
-        className="w-full mb-3 h-9 flex items-center justify-center gap-2
-                   border border-black text-xs font-mono uppercase tracking-wider
-                   text-black hover:bg-black hover:text-white transition-colors rounded-none"
-      >
-        <ScanText size={13} />
-        Scan Document
-      </button>
-
       {/* ── Sticky Chart No selector ─────────────────────────────────────── */}
       <div className="flex items-center gap-2 mb-3 p-3 bg-neutral-50 border border-neutral-200 overflow-hidden">
         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 shrink-0">
@@ -260,7 +234,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
               <p className="mt-1 text-[11px] text-red-600">{errors.loco1.message}</p>
             )}
           </div>
-          <div>
+          {/* <div>
             <label htmlFor="shed1" className={labelCls}>
               Shed 1{" "}
               <span className="text-neutral-300 normal-case tracking-normal text-[9px]">optional</span>
@@ -272,7 +246,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
               className={cn(inputCls, "uppercase")}
               placeholder="e.g. LKO"
             />
-          </div>
+          </div> */}
         </div>
         <div className="space-y-3">
           <div>
@@ -288,7 +262,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
               placeholder="e.g. 67890"
             />
           </div>
-          <div>
+          {/* <div>
             <label htmlFor="shed2" className={labelCls}>
               Shed 2{" "}
               <span className="text-neutral-300 normal-case tracking-normal text-[9px]">optional</span>
@@ -300,7 +274,7 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
               className={cn(inputCls, "uppercase")}
               placeholder="e.g. GZB"
             />
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -431,14 +405,6 @@ export function EntryForm({ sessionId, existingLoco1s, onEntrySaved }: EntryForm
         Fill all required fields, then select S. No to auto-save.
       </p>
     </form>
-
-    {/* ── Scan modal (portal-style, rendered in-tree) ──────────────── */}
-    {showScan && (
-      <ScanModal
-        onClose={() => setShowScan(false)}
-        onApply={handleScanApply}
-      />
-    )}
   </>
   );
 }
