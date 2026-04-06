@@ -75,21 +75,29 @@ function formatGroupKey(key: string, groupBy: GroupBy): string {
   return key;
 }
 
-function matchesSearch(entry: Entry, q: string): boolean {
-  if (!q) return true;
-  const lower = q.toLowerCase();
-  return [
-    entry.loco1,
-    entry.loco2 ?? "",
-    entry.train_no,
-    entry.station,
-    entry.chart_no,
-    String(entry.sno),
-    entry.date,
-  ]
-    .join(" ")
-    .toLowerCase()
-    .includes(lower);
+function entriesEqual(a: Entry[], b: Entry[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    const x = a[i];
+    const y = b[i];
+    if (
+      x.id !== y.id ||
+      x.loco1 !== y.loco1 ||
+      x.loco2 !== y.loco2 ||
+      x.shed1 !== y.shed1 ||
+      x.shed2 !== y.shed2 ||
+      x.train_no !== y.train_no ||
+      x.station !== y.station ||
+      x.chart_no !== y.chart_no ||
+      x.sno !== y.sno ||
+      x.date !== y.date ||
+      x.shutdown !== y.shutdown
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 const SNO_OPTIONS = Array.from({ length: 21 }, (_, i) => i + 1) as Sno[];
@@ -149,7 +157,7 @@ export function EntriesView({
         if (!res.ok) return;
         const fresh: Entry[] = await res.json();
         if (!cancelled) {
-          setEntries(fresh);
+          setEntries((prev) => (entriesEqual(prev, fresh) ? prev : fresh));
           setRealtimeOk(true);
         }
       } catch {
@@ -185,13 +193,37 @@ export function EntriesView({
   const existingLoco1s = useMemo(() => entries.map((e) => e.loco1), [entries]);
 
   // ── filtered + grouped entries ─────────────────────────────────────────────
-  const filtered = useMemo(
-    () => entries.filter((e) => {
+  const searchIndex = useMemo(() => {
+    const index = new Map<string, string>();
+    for (const e of entries) {
+      index.set(
+        e.id,
+        [
+          e.loco1,
+          e.loco2 ?? "",
+          e.shed1 ?? "",
+          e.shed2 ?? "",
+          e.train_no,
+          e.station,
+          e.chart_no,
+          String(e.sno),
+          e.date,
+        ]
+          .join(" ")
+          .toLowerCase()
+      );
+    }
+    return index;
+  }, [entries]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return entries.filter((e) => {
       if (filterShutdown && !e.shutdown) return false;
-      return matchesSearch(e, search);
-    }),
-    [entries, search, filterShutdown]
-  );
+      if (!q) return true;
+      return (searchIndex.get(e.id) ?? "").includes(q);
+    });
+  }, [entries, search, filterShutdown, searchIndex]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, Entry[]>();
