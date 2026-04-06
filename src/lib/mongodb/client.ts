@@ -2,9 +2,6 @@ import { MongoClient, Db } from "mongodb";
 
 const uri = process.env.MONGODB_URI!;
 const dbName = process.env.MONGODB_DB ?? "rco";
-const SHOULD_ENSURE_INDEXES =
-  process.env.MONGODB_ENSURE_INDEXES === "true" ||
-  (process.env.NODE_ENV !== "production" && process.env.MONGODB_ENSURE_INDEXES !== "false");
 
 // Global singleton — reused across requests in both dev (hot-reload) and prod
 // (serverless: each Lambda instance keeps one pool, avoiding a new TCP
@@ -33,9 +30,7 @@ async function getClient(): Promise<MongoClient> {
     });
     await client.connect();
     global._mongoClient = client;
-    if (SHOULD_ENSURE_INDEXES) {
-      await ensureIndexes(client.db(dbName));
-    }
+    await ensureIndexes(client.db(dbName));
   }
   return global._mongoClient!;
 }
