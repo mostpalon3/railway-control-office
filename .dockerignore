@@ -1,0 +1,40 @@
+# Docker
+.next
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment (never bake secrets into image)
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+coverage
+out
+build
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Docker files (no recursive build)
+Dockerfile
+docker-compose*.yml
