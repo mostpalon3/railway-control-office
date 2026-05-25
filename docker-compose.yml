@@ -27,12 +27,6 @@ services:
       - "3000"
     networks:
       - rco-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
   # ── Nginx Reverse Proxy ──────────────────────────────────
   nginx:
@@ -48,8 +42,7 @@ services:
       - ./certbot/www:/var/www/certbot:ro
       - ./certbot/conf:/etc/letsencrypt:ro
     depends_on:
-      app:
-        condition: service_healthy
+      - app
     networks:
       - rco-network
 
