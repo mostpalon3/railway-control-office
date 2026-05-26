@@ -96,7 +96,7 @@ jobs:
             docker compose up -d --no-deps app
 
             echo "▸ Waiting for health check..."
-            sleep 10
+            sleep 30
 
             # Verify the new container is healthy
             if docker inspect --format='{{.State.Health.Status}}' rco-app | grep -q "healthy"; then

@@ -17,6 +17,12 @@ services:
       - "3000"
     networks:
       - rco-network
+    healthcheck:
+    test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+    interval: 30s
+    timeout: 10s
+    retries: 10
+    start_period: 60s
 
   # ── Nginx Reverse Proxy ──────────────────────────────────
   nginx:
