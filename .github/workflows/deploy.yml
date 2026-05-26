@@ -93,7 +93,7 @@ jobs:
 
             echo "▸ Deploying with zero-downtime..."
             # Build a new container alongside the old one
-            docker compose up -d --no-deps --build app
+            docker compose up -d --no-deps app
 
             echo "▸ Waiting for health check..."
             sleep 10

@@ -6,17 +6,7 @@
 services:
   # ── Next.js Application ──────────────────────────────────
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
-        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
-
-        FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
-        FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
-        FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+    image: ghcr.io/mostpalon3/railway-control-office:latest
     container_name: rco-app
     restart: unless-stopped
     env_file:
