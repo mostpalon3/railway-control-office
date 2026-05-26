@@ -7,7 +7,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   workflow_dispatch:  # Allow manual trigger
 
 env:
@@ -37,7 +37,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Extract metadata
         id: meta
