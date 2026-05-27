@@ -85,6 +85,9 @@ jobs:
             echo "▸ Navigating to project directory..."
             cd ~/railway-control-office
 
+            echo "▸ Pulling latest infrastructure configs..."
+            git pull origin dev
+
             echo "▸ Logging in to GitHub Container Registry..."
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
@@ -92,8 +95,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}:latest
 
             echo "▸ Deploying with zero-downtime..."
-            # Build a new container alongside the old one
-            docker compose up -d --no-deps app
+            docker compose up -d --force-recreate --no-deps app
 
             echo "▸ Waiting for health check..."
             sleep 30
