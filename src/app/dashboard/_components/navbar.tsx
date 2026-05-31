@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
 import { toast } from "sonner";
 import { Palette, Users } from "lucide-react";
 import { useTheme, THEMES, THEME_LABELS } from "@/lib/ThemeContext";
@@ -20,6 +18,8 @@ export function Navbar({ email, isAdmin }: NavbarProps) {
 
   async function handleLogout() {
     try {
+      const { signOut } = await import("firebase/auth");
+      const { auth } = await import("@/lib/firebase/client");
       await signOut(auth);
       await fetch("/api/auth/session", { method: "DELETE" });
       router.push("/auth/login");
