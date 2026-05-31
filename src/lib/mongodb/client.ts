@@ -33,6 +33,8 @@ async function getClient(): Promise<MongoClient> {
   if (!global._mongoClient) {
     const client = new MongoClient(uri, {
       maxPoolSize: 10,
+      minPoolSize: 1,
+      maxIdleTimeMS: 30000,
       serverSelectionTimeoutMS: 5000,
     });
     await client.connect();
