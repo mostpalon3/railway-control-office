@@ -41,3 +41,12 @@ export function memSet<T>(key: string, value: T, ttlMs: number): void {
 export function memDel(key: string): void {
   getStore().delete(key);
 }
+
+/** Delete all cache entries whose key starts with the given prefix. */
+export function memDelPrefix(prefix: string): void {
+  const store = getStore();
+  for (const key of store.keys()) {
+    if (key.startsWith(prefix)) store.delete(key);
+  }
+}
+

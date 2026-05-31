@@ -36,8 +36,19 @@ export const KEYS = {
   /** Cached entries array keyed by MongoDB session id */
   entries:   (sessionId:  string) => `rco:entries:${sessionId}`,
   /**
-   * Cached dashboard payload { sessions, countMap } — 30 s TTL.
+   * Cached dashboard page payload { sessions, countMap, totalSessions }.
+   * Keyed by page number + optional search query.
    * Busted on session create / patch / delete so the list stays fresh.
+   */
+  dashboardPage: (page: number, query?: string) =>
+    query
+      ? `rco:dashboard:p${page}:q:${query.toLowerCase()}`
+      : `rco:dashboard:p${page}`,
+  /** Prefix used to invalidate ALL dashboard page caches at once */
+  dashboardPrefix: "rco:dashboard:" as const,
+  /**
+   * @deprecated — kept for backward compat; use dashboardPage() instead.
+   * Old single-key cache. Will be cleaned up by cache bust.
    */
   dashboard: "rco:dashboard" as const,
   /** Cached Firebase user list for admin panel — 60 s TTL */
@@ -45,3 +56,4 @@ export const KEYS = {
   /** Cached MongoDB allowlist for admin panel — 60 s TTL */
   adminAllowlist: "rco:adminallowlist" as const,
 };
+
