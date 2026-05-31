@@ -46,15 +46,6 @@ export async function POST(req: NextRequest) {
 
   const db = await getDb();
 
-  // Application-level uniqueness check (works even before the DB index is active)
-  const existing = await db.collection("sessions").findOne(
-    { name: { $regex: `^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } },
-    { projection: { _id: 1 } }
-  );
-  if (existing) {
-    return NextResponse.json({ error: "A session with that name already exists" }, { status: 409 });
-  }
-
   try {
     const result = await db.collection("sessions").insertOne({
       _id:        new ObjectId(),
