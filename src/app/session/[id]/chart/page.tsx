@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
-import { getCachedUser } from "@/lib/firebase/server";
-import { getCachedEntries } from "@/lib/entries-cache";
-import { EntriesView } from "@/components/EntriesView";
-import type { Entry } from "@/lib/supabase/types";
+import { Suspense } from "react";
+import { EntriesSection } from "../_components/entries-section";
+import { EntriesSectionLoading } from "../_components/entries-section-loading";
 
 interface ChartPageProps {
   params: Promise<{ id: string }>;
@@ -10,21 +8,9 @@ interface ChartPageProps {
 
 export default async function ChartPage({ params }: ChartPageProps) {
   const { id } = await params;
-  const user = await getCachedUser();
-  if (!user) redirect("/auth/login");
-
-  let entries: Entry[] = [];
-  try {
-    entries = await getCachedEntries(id);
-  } catch {
-    throw new Error("Database unavailable — could not load entries");
-  }
-
   return (
-    <EntriesView
-      sessionId={id}
-      initialEntries={entries}
-      groupBy="chart_no"
-    />
+    <Suspense fallback={<EntriesSectionLoading />}>
+      <EntriesSection sessionId={id} groupBy="chart_no" />
+    </Suspense>
   );
 }
