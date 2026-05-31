@@ -1,9 +1,14 @@
 // Suspense-boundary skeleton — shown while the session layout server-fetches data.
 export default function SessionLoading() {
   return (
-    <div className="min-h-screen bg-white animate-pulse">
+    <div className="min-h-screen bg-white">
       {/* Header bar */}
       <div className="border-b border-neutral-200 h-12 px-6 flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-neutral-300 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-neutral-300 animate-pulse [animation-delay:150ms]" />
+          <span className="h-2 w-2 rounded-full bg-neutral-300 animate-pulse [animation-delay:300ms]" />
+        </div>
         <div className="h-3.5 w-28 bg-neutral-100" />
         <div className="h-4 w-10 bg-neutral-200/60 border border-neutral-200" />
         <div className="ml-auto flex gap-2">
@@ -18,7 +23,11 @@ export default function SessionLoading() {
         <div className="flex gap-0 pt-0.5">
           {[80, 72, 64].map((w, i) => (
             <div key={i} className="px-5 py-3">
-              <div className="h-2.5 bg-neutral-100" style={{ width: w }} />
+              <div className="flex items-center gap-1.5" style={{ width: w }}>
+                <span className="h-2 w-2 rounded-full bg-neutral-200 animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-neutral-200 animate-pulse [animation-delay:150ms]" />
+                <span className="h-2 w-2 rounded-full bg-neutral-200 animate-pulse [animation-delay:300ms]" />
+              </div>
             </div>
           ))}
         </div>
