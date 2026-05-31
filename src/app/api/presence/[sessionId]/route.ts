@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
 import { getCachedUid } from "@/lib/firebase/server";
-import { getRedis, KEYS } from "@/lib/redis";
 import { memDel, memGet, memSet } from "@/lib/mem-cache";
 
 const STALE_MS = 35_000; // 35 s — prune entries older than this
 const PRESENCE_COUNT_TTL_MS = 10_000; // 10 s — presence doesn't need to be real-time
+const PRESENCE_COUNT_KEY_PREFIX = "rco:presence:";
 
 
 /** GET /api/presence/[sessionId]  — return count of active users */
@@ -16,19 +16,10 @@ export async function GET(
 ) {
   const { sessionId } = await params;
 
-  const cacheKey = KEYS.presence(sessionId);
+  const cacheKey = `${PRESENCE_COUNT_KEY_PREFIX}${sessionId}`;
   const cached = memGet<number>(cacheKey);
   if (cached !== null) {
     return NextResponse.json({ count: cached });
-  }
-
-  const redis = getRedis();
-  if (redis) {
-    const redisCached = await redis.get<number>(cacheKey).catch(() => null);
-    if (redisCached !== null && redisCached !== undefined) {
-      memSet(cacheKey, redisCached, PRESENCE_COUNT_TTL_MS);
-      return NextResponse.json({ count: redisCached });
-    }
   }
 
   const db = await getDb();
@@ -38,7 +29,6 @@ export async function GET(
     .countDocuments({ session_id: sessionId, last_seen: { $gte: cutoff } });
 
   memSet(cacheKey, count, PRESENCE_COUNT_TTL_MS);
-  redis?.set(cacheKey, count, { ex: 10 }).catch(() => {});
 
   return NextResponse.json({ count });
 }
@@ -59,9 +49,8 @@ export async function POST(
     { upsert: true }
   );
 
-  const cacheKey = KEYS.presence(sessionId);
+  const cacheKey = `${PRESENCE_COUNT_KEY_PREFIX}${sessionId}`;
   memDel(cacheKey);
-  await getRedis()?.del(cacheKey).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }
