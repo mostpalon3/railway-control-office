@@ -30,39 +30,10 @@ export async function POST(req: NextRequest) {
 
   const db = await getDb();
 
-  // Duplicate loco1 check
-  const dup = await db.collection("entries").findOne({ session_id, loco1: loco1.trim() });
-  if (dup) {
-    return NextResponse.json(
-      { error: `Loco ${loco1} is already entered in this session`, code: "DUPLICATE_LOCO" },
-      { status: 409 }
-    );
-  }
-
   const now = new Date();
-  const result = await db.collection("entries").insertOne({
-    _id:        new ObjectId(),
-    session_id,
-    loco1:      loco1.trim(),
-    loco2:      loco2?.trim() || null,
-    train_no:   train_no.trim(),
-    station:    station.trim(),
-    chart_no,
-    sno:        Number(sno),
-    date,
-    shutdown:   shutdown === true,
-    shed1:      shed1?.trim().toUpperCase() || null,
-    shed2:      shed2?.trim().toUpperCase() || null,
-    created_by: user.email,
-    created_at: now,
-  });
-
-  // Bust L1 + L2 cache so the next poll picks up the new entry
-  bustEntriesCache(session_id);
-
-  return NextResponse.json(
-    {
-      id:         result.insertedId.toHexString(),
+  try {
+    const result = await db.collection("entries").insertOne({
+      _id:        new ObjectId(),
       session_id,
       loco1:      loco1.trim(),
       loco2:      loco2?.trim() || null,
@@ -75,8 +46,38 @@ export async function POST(req: NextRequest) {
       shed1:      shed1?.trim().toUpperCase() || null,
       shed2:      shed2?.trim().toUpperCase() || null,
       created_by: user.email,
-      created_at: now.toISOString(),
-    },
-    { status: 201 }
-  );
+      created_at: now,
+    });
+
+    // Bust L1 + L2 cache so the next poll picks up the new entry
+    bustEntriesCache(session_id);
+
+    return NextResponse.json(
+      {
+        id:         result.insertedId.toHexString(),
+        session_id,
+        loco1:      loco1.trim(),
+        loco2:      loco2?.trim() || null,
+        train_no:   train_no.trim(),
+        station:    station.trim(),
+        chart_no,
+        sno:        Number(sno),
+        date,
+        shutdown:   shutdown === true,
+        shed1:      shed1?.trim().toUpperCase() || null,
+        shed2:      shed2?.trim().toUpperCase() || null,
+        created_by: user.email,
+        created_at: now.toISOString(),
+      },
+      { status: 201 }
+    );
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && (err as { code?: number }).code === 11000) {
+      return NextResponse.json(
+        { error: `Loco ${loco1} is already entered in this session`, code: "DUPLICATE_LOCO" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 }
