@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
 import { getCachedUid } from "@/lib/firebase/server";
 import { getRedis, KEYS } from "@/lib/redis";
-import { memDel } from "@/lib/mem-cache";
+import { memDel, memDelPrefix } from "@/lib/mem-cache";
 
 async function delRedisKey(key: string) {
   const redis = getRedis();
@@ -16,8 +16,32 @@ async function delRedisKey(key: string) {
 }
 
 async function invalidateDashboardCache() {
-  memDel(KEYS.dashboard);
-  await delRedisKey(KEYS.dashboard);
+  // L1: wipe all paginated pages from memory
+  memDelPrefix(KEYS.dashboardPrefix);
+  memDel(KEYS.dashboard); // legacy key
+
+  // L2: wipe all paginated pages from Redis
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    const keys: string[] = [];
+    let cursor = 0;
+    do {
+      const [nextCursor, batch] = await redis.scan(cursor, {
+        match: `${KEYS.dashboardPrefix}*`,
+        count: 100,
+      });
+      cursor = typeof nextCursor === "string" ? parseInt(nextCursor, 10) : nextCursor;
+      keys.push(...batch);
+    } while (cursor !== 0);
+
+    if (keys.length > 0) {
+      await Promise.all(keys.map((k) => redis.del(k)));
+    }
+    await redis.del(KEYS.dashboard); // legacy
+  } catch {
+    // ignore
+  }
 }
 
 /** PATCH /api/sessions/[id]  — update ended_at (open/close) */

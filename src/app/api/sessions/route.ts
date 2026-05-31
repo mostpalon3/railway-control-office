@@ -3,13 +3,33 @@ import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
 import { getCachedUser } from "@/lib/firebase/server";
 import { getRedis, KEYS } from "@/lib/redis";
-import { memDel } from "@/lib/mem-cache";
+import { memDel, memDelPrefix } from "@/lib/mem-cache";
 
 async function invalidateDashboardCache() {
-  memDel(KEYS.dashboard);
+  // L1: wipe all paginated pages from memory
+  memDelPrefix(KEYS.dashboardPrefix);
+  memDel(KEYS.dashboard); // legacy key
+
+  // L2: wipe all paginated pages from Redis
   const redis = getRedis();
   if (!redis) return;
   try {
+    // Scan for all dashboard keys and delete them
+    const keys: string[] = [];
+    let cursor = 0;
+    do {
+      const [nextCursor, batch] = await redis.scan(cursor, {
+        match: `${KEYS.dashboardPrefix}*`,
+        count: 100,
+      });
+      cursor = typeof nextCursor === "string" ? parseInt(nextCursor, 10) : nextCursor;
+      keys.push(...batch);
+    } while (cursor !== 0);
+
+    if (keys.length > 0) {
+      await Promise.all(keys.map((k) => redis.del(k)));
+    }
+    // Also delete legacy key
     await redis.del(KEYS.dashboard);
   } catch {
     // Redis is an L2 cache. Ignore invalidation failures and continue.
