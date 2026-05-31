@@ -35,6 +35,8 @@ export const KEYS = {
   authCheck: (cookieHash: string) => `rco:authcheck:${cookieHash}`,
   /** Cached entries array keyed by MongoDB session id */
   entries:   (sessionId:  string) => `rco:entries:${sessionId}`,
+  /** Cached presence count keyed by MongoDB session id */
+  presence:  (sessionId:  string) => `rco:presence:${sessionId}`,
   /**
    * Cached dashboard page payload { sessions, countMap, totalSessions }.
    * Keyed by page number + optional search query.
