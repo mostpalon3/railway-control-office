@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Printer, Trash2, Save, Loader2, Check, X, RefreshCw, Palette } from "lucide-react";
-import * as XLSX from "xlsx";
 import type { Entry } from "@/lib/supabase/types";
 import { CHART_NO_VALUES } from "@/lib/validations";
 import { useTheme, THEMES, THEME_LABELS } from "@/lib/ThemeContext";
@@ -23,7 +22,8 @@ interface SessionActionsProps {
 }
 
 // ─── Excel helpers ────────────────────────────────────────────────────────────
-function downloadExcel(entries: Entry[], filename: string) {
+async function downloadExcel(entries: Entry[], filename: string) {
+  const XLSX = await import("xlsx");
   const sorted = sortEntries(entries);
   const rows = sorted.map((e) => ({
     "LOCO 1":     e.loco1,
@@ -128,7 +128,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
       });
 
       const safeName = sessionName.replace(/[^a-z0-9_\- ]/gi, "_").trim();
-      downloadExcel(sorted, safeName || sessionId);
+      await downloadExcel(sorted, safeName || sessionId);
 
       toast.success("Session saved and Excel downloaded");
       router.refresh();
@@ -146,7 +146,7 @@ export function SessionActions({ sessionId, sessionName }: SessionActionsProps) 
       const entries = await fetchEntries(sessionId);
       const sorted  = sortEntries(entries);
       const safeName = sessionName.replace(/[^a-z0-9_\- ]/gi, "_").trim();
-      downloadExcel(sorted, safeName || sessionId);
+      await downloadExcel(sorted, safeName || sessionId);
       toast.success("Excel downloaded");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Export failed");
